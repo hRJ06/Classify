@@ -8,9 +8,12 @@ const ViewCourse = () => {
   const [courses, setCourses] = useState([]);
   const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
   const [newCourseName, setNewCourseName] = useState('');
+  const [unenrollCourse,setUnenrollCourse] = useState(null);
+  const [unenrollCourseModal,setUnEnrollCourseModal] = useState(false);
+
   const navigate = useNavigate();
   const role = localStorage.getItem('Role');
-
+  const token = localStorage.getItem('token');
   useEffect(() => {
     const getRandomImage = () => {
       const randomImageURL = `https://source.unsplash.com/400x300/?course`;
@@ -19,7 +22,6 @@ const ViewCourse = () => {
 
     const getAllCourses = async () => {
       try {
-        const token = localStorage.getItem('token');
         const response = await axios.get('http://localhost:8080/api/v1/course/getCourses', {
           headers: {
             Authorization: `Bearer ${token}`
@@ -43,6 +45,22 @@ const ViewCourse = () => {
     navigator.clipboard.writeText(courseName);
     toast.success(`Course Code Copied`);
   };
+  const handleUnEnrollCourse = async(courseId) => {
+    const response = await axios.put(`http://localhost:8080/api/v1/course/unenroll/${unenrollCourse}`,null,{
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    if(response?.data?.success) {
+      toast.success(response?.data?.result)
+      const reload = setTimeout(() => {
+        window.location.reload()
+      },4000)
+    }
+    else {
+      toast.error(response?.data?.result)
+    }
+  }
 
   const handleCreateCourse = async () => {
     try {
@@ -87,7 +105,21 @@ const ViewCourse = () => {
             <div className="font-bold text-xl mb-2">{course.courseName}</div>
             <div className="flex justify-center space-x-4">
               <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onClick={() => navigate(`/course/${course.id}`)}>View</button>
-              <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onClick={() => handleCopyCourse(course.code)}>Code</button>
+              {
+                role === "INSTRUCTOR" && 
+                <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onClick={() => handleCopyCourse(course.code)}>Code</button>
+              }
+              {
+                role === "STUDENT" && 
+                <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onClick={() => {
+                      setUnenrollCourse(course.id)
+                      setUnEnrollCourseModal(true)
+                    }
+                  }
+                >
+                  UNENROLL
+                </button>
+              }
             </div>
           </div>
         </div>
@@ -119,6 +151,27 @@ const ViewCourse = () => {
               onClick={() => setShowCreateCourseModal(false)}
             >
               CANCEL
+            </button>
+          </div>
+        </div>
+      )}
+
+      {unenrollCourseModal && (
+        <div className="fixed inset-0 flex items-center justify-center">
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10">
+            <h2 className="text-2xl font-bold mb-4">Are You Sure?</h2>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={handleUnEnrollCourse}
+            >
+              YES
+            </button>
+            <button
+              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={() => setUnEnrollCourseModal(false)}
+            >
+              NO
             </button>
           </div>
         </div>

@@ -101,10 +101,10 @@ public class CourseServiceImplementation implements CourseService {
                     user.getEnrolledCourses().remove(course);
                     this.userRepository.save(user);
                     this.courseRepository.save(course);
-                    return new CourseResponseDTO("Successfully unenrolled from course",true);
+                    return new CourseResponseDTO("Successfully UnEnrolled from course",true);
                 }
                 else {
-                    return new CourseResponseDTO("Please enroll in course first",false);
+                    return new CourseResponseDTO("Please Enroll in course first",false);
                 }
             }
         }

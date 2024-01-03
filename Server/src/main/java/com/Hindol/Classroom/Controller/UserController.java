@@ -55,4 +55,16 @@ public class UserController {
             return new ResponseEntity<TokenDTO>(tokenDTO, HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/my-details")
+    public ResponseEntity<?> getDetails(@RequestHeader("Authorization") String bearerToken) {
+        if(bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            String token = bearerToken.substring(7);
+            UserDTO userDTO = this.userService.getDetails(token);
+            return new ResponseEntity<UserDTO>(userDTO,HttpStatus.OK);
+        }
+        else {
+            return ResponseEntity.badRequest().body("Provide a Valid Token");
+        }
+
+    }
 }

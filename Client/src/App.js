@@ -8,6 +8,7 @@ import Course from './Component/Course'
 import Enroll from './Component/Enroll'
 import ForgotPassword from './Component/ForgotPassword'
 import ResetPassword from './Component/ResetPassword'
+import Dashboard from './Component/Dashboard'
 
 const App = () => {
   return (
@@ -20,6 +21,7 @@ const App = () => {
       <Route path='/course/:courseId' element={<Course/>}></Route>
       <Route path='/forgot-password' element={<ForgotPassword/>}></Route>
       <Route path='/reset-password/:token' element={<ResetPassword/>}></Route>
+      <Route path='/dashboard' element={<Dashboard/>}></Route>
     </Routes>
   )
 }

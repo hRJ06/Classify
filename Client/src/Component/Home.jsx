@@ -1,11 +1,13 @@
 import React from 'react';
 import '../App.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const Home = () => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('Role');
+  const navigate = useNavigate();
+
   const handleLogOut = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('Role');
@@ -36,7 +38,15 @@ const Home = () => {
                 <Link to='/enroll'><button className="bg-green-500 text-white px-4 py-2 rounded transition-all duration-300 hover:bg-green-600">Enroll</button></Link>
               )
             }
+          </div>
+        }
+      </div>
+      <div className="absolute top-0 right-0 m-4 space-x-4">
+        {
+          token && 
+          <div className="space-x-4">
             <button className="bg-red-500 text-white px-4 py-2 rounded transition-all duration-300 hover:bg-red-600" onClick={handleLogOut}>Log Out</button>
+            <button className="bg-green-500 text-white px-4 py-2 rounded transition-all duration-300 hover:bg-green-600" onClick={() => navigate('/dashboard')}>My Profile</button>
           </div>
         }
       </div>

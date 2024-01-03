@@ -1,13 +1,11 @@
 package com.Hindol.Classroom.Service.Implementation;
 
 import com.Hindol.Classroom.Entity.User;
-import com.Hindol.Classroom.Payload.LoginResponseDTO;
-import com.Hindol.Classroom.Payload.ResetPasswordDTO;
-import com.Hindol.Classroom.Payload.TokenDTO;
-import com.Hindol.Classroom.Payload.UserDTO;
+import com.Hindol.Classroom.Payload.*;
 import com.Hindol.Classroom.Repository.UserRepository;
 import com.Hindol.Classroom.Service.UserService;
 import com.Hindol.Classroom.Util.JWTToken;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -133,6 +131,32 @@ public class UserServiceImplementation implements UserService {
             }
         } else {
             return new TokenDTO("Please provide a valid token", false);
+        }
+    }
+
+    @Override
+    public UserDTO getDetails(String token) {
+        try {
+            TokenValidationResultDTO tokenValidationResultDTO = this.jwtToken.verifyToken(token);
+            if("Expired Token".equals(tokenValidationResultDTO.getResult()) || "Invalid Token".equals(tokenValidationResultDTO.getResult())) {
+                return null;
+            }
+            else {
+                String email = tokenValidationResultDTO.getEmail();
+                User user = this.userRepository.findByEmail(email);
+                if(user != null) {
+                    UserDTO userDTO = this.modelMapper.map(user,UserDTO.class);
+                    /* FOR SECURITY PURPOSE */
+                    userDTO.setPassword(null);
+                    return userDTO;
+                }else {
+                    return null;
+                }
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+            return null;
         }
     }
 
