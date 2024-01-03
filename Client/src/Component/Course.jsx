@@ -13,6 +13,13 @@ const Course = () => {
     fullMarks: "",
     uploadedFiles: []
   });
+  const [editAssignment, setEditAssignment] = useState(null);
+  const [editAssignmentData, setEditAssignmentData] = useState({
+    assignmentName: editAssignment ? editAssignment.assignmentName : '',
+    deadline: editAssignment ? editAssignment.deadline : '',
+    description: editAssignment ? editAssignment.description : '',
+    fullMarks: editAssignment ? editAssignment.fullMarks : '',
+  })
   const [newAnnouncementData, setNewAnnouncementData] = useState({
     name: "",
     content: "",
@@ -45,6 +52,24 @@ const Course = () => {
   const [addSubmissionAssignment, setAddSubmissionAssignment] = useState(null);
   const [addFileAssignmentModal, setAddFileAssignmentModal] = useState(false);
   const [addFileAssignment, setAddFileAssignment] = useState(null);
+  const handleEditAssignment = async() => {
+    const response = await axios.put(`http://localhost:8080/api/v1/assignment/editAssignment/${editAssignment.id}`,editAssignmentData,{
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    if(response?.data?.success) {
+      toast.success(response?.data?.message)
+    }
+    else {
+      toast.error(response?.data?.message)
+    }
+    if(response?.data?.success) {
+      const reload = setTimeout(() => {
+        window.location.reload()
+      },3000)
+    }
+  }
   const handleAddFileAssignment = async() => {
     if(newFileAssignmentData.uploadedFiles.length <= 0) {
       toast.error("Please Attach A File")
@@ -335,6 +360,14 @@ const Course = () => {
     getAssignments();
     getAnnouncements();
   }, [courseId, token]);
+  useEffect(() => {
+    setEditAssignmentData({
+      assignmentName: editAssignment ? editAssignment.assignmentName : '',
+      deadline: editAssignment ? editAssignment.deadline : '',
+      description: editAssignment ? editAssignment.description : '',
+      fullMarks: editAssignment ? editAssignment.fullMarks : '',
+    });
+  }, [editAssignment]);
 
   return (
     <div className="font-ubuntu flex flex-col">
@@ -420,9 +453,22 @@ const Course = () => {
                     <h3 className="text-xl font-bold">
                       {assignment.assignmentName}
                     </h3>
+                    <div className="flex items-center">
+                    {/* Edit Button */}
+                    {
+                      role === "INSTRUCTOR" && 
+                      <button
+                        className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={() => setEditAssignment(assignment)}
+                      >
+                        Edit
+                      </button>
+                    }
+                    {/* Expand/Collapse Button */}
                     <span>
                       {expandedAssignmentId === assignment.id ? "▲" : "▼"}
                     </span>
+                    </div>
                   </div>
                   {expandedAssignmentId === assignment.id && (
                     <div className="mt-2">
@@ -706,7 +752,7 @@ const Course = () => {
               NAME
               <input
                 type="text"
-                value={newAssignmentData.assignmentName}
+                value={editAssignment.assignmentName}
                 onChange={(e) =>
                   setNewAssignmentData({
                     ...newAssignmentData,
@@ -959,7 +1005,84 @@ const Course = () => {
             </div>
         </div>
       )} 
-
+      {editAssignment && (
+        <div className="fixed inset-0 flex items-center justify-center">
+            <div className="bg-black opacity-75 fixed inset-0"></div>
+            <div className="bg-white p-8 z-10">
+                <h2 className="text-2xl font-bold mb-4">EDIT ASSIGNMENT</h2>
+                <label className="block mb-2">
+                  Name
+                  <input
+                    type="text"
+                    value={editAssignmentData.assignmentName}
+                    onChange={(e) =>
+                      setEditAssignmentData({
+                        ...editAssignmentData,
+                        assignmentName: e.target.value,
+                      })
+                    }
+                    className="border rounded w-full p-2"
+                  />
+                </label>
+                <label className="block mb-2">
+                  Description
+                  <input
+                    type="text"
+                    value={editAssignmentData.description}
+                    onChange={(e) =>
+                      setEditAssignmentData({
+                        ...editAssignmentData,
+                        description: e.target.value,
+                      })
+                    }
+                    className="border rounded w-full p-2"
+                  />
+                </label>
+                <label className="block mb-2">
+                  Deadline
+                  <input
+                    type="datetime-local"
+                    value={editAssignmentData.deadline}
+                    onChange={(e) =>
+                      setEditAssignmentData({
+                        ...editAssignmentData,
+                        deadline: e.target.value,
+                      })
+                    }
+                    className="border rounded w-full p-2"
+                  />
+                </label>
+                <label className="block mb-2">
+                  Marks
+                  <input
+                    type="number"
+                    value={editAssignmentData.fullMarks}
+                    onChange={(e) =>
+                      setEditAssignmentData({
+                        ...editAssignmentData,
+                        marks: e.target.value,
+                      })
+                    }
+                    className="border rounded w-full p-2"
+                  />
+                </label>
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={handleEditAssignment}
+                >
+                  EDIT
+                </button>
+                <button
+                  className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                  onClick={() => {
+                    setEditAssignment(false)
+                  }}
+                >
+                  CANCEL
+                </button>
+            </div>
+        </div>
+      )}
     </div>
   );
 };

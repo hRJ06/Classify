@@ -3,14 +3,17 @@ package com.Hindol.Classroom.Service.Implementation;
 import com.Hindol.Classroom.Entity.*;
 import com.Hindol.Classroom.Payload.AssignmentResponseDTO;
 import com.Hindol.Classroom.Payload.AssignmentSubmissionDTO;
+import com.Hindol.Classroom.Payload.EditAssignmentDTO;
 import com.Hindol.Classroom.Repository.*;
 import com.Hindol.Classroom.Service.AssignmentService;
 import com.cloudinary.Cloudinary;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -137,6 +140,36 @@ public class AssignmentServiceImplementation implements AssignmentService {
         }
         catch (Exception e) {
             return new AssignmentSubmissionDTO(null,e.getMessage(),false);
+        }
+    }
+
+    @Override
+    public AssignmentResponseDTO editAssignment(EditAssignmentDTO editAssignmentDTO, String email, String role, Integer assignmentId) {
+        try {
+            Assignment assignment = this.assignmentRepository.findById(assignmentId).orElseThrow(() -> new RuntimeException("Unable to Fetch Assignment With ID " + assignmentId));
+            if(assignment.getCourse().getInstructor().getEmail().equals(email)) {
+                assignment.setAssignmentName(editAssignmentDTO.getAssignmentName());
+                assignment.setDescription(editAssignmentDTO.getDescription());
+                /* STRING TO LOCAL DATE-TIME */
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                LocalDateTime deadline = LocalDateTime.parse(editAssignmentDTO.getDeadline(), formatter);
+                assignment.setDeadline(deadline);
+                assignment.setFullMarks(editAssignmentDTO.getFullMarks());
+                List<Submission> submissions = assignment.getSubmissions();
+                for(Submission submission : submissions) {
+                    LocalDateTime currentDateTime = LocalDateTime.now();
+                    submission.setLateStatus(currentDateTime.compareTo(assignment.getDeadline()) > 0);
+                }
+                this.assignmentRepository.save(assignment);
+                return new AssignmentResponseDTO("Successfully Edited Assignment",true);
+            }
+            else {
+                return new AssignmentResponseDTO("You must be an Instructor for this Course to edit thie Assignment",false);
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+            return new AssignmentResponseDTO(e.getMessage(),false);
         }
     }
 

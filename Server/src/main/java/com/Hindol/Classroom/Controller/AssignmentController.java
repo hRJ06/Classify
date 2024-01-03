@@ -2,6 +2,7 @@ package com.Hindol.Classroom.Controller;
 
 import com.Hindol.Classroom.Payload.AssignmentResponseDTO;
 import com.Hindol.Classroom.Payload.AssignmentSubmissionDTO;
+import com.Hindol.Classroom.Payload.EditAssignmentDTO;
 import com.Hindol.Classroom.Service.AssignmentService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,18 @@ public class AssignmentController {
         String email = (String) request.getAttribute("email");
         String role = (String) request.getAttribute("Role");
         AssignmentResponseDTO assignmentResponseDTO = this.assignmentService.removeSubmission(assignmentId,email,role);
+        if(assignmentResponseDTO.getSuccess()) {
+            return new ResponseEntity<AssignmentResponseDTO>(assignmentResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<AssignmentResponseDTO>(assignmentResponseDTO,HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PutMapping("/editAssignment/{assignmentId}")
+    public ResponseEntity<?> editAssignment(@PathVariable Integer assignmentId, HttpServletRequest request, @RequestBody EditAssignmentDTO editAssignmentDTO) {
+        String email = (String) request.getAttribute("email");
+        String role = (String) request.getAttribute("Role");
+        AssignmentResponseDTO assignmentResponseDTO = this.assignmentService.editAssignment(editAssignmentDTO,email,role,assignmentId);
         if(assignmentResponseDTO.getSuccess()) {
             return new ResponseEntity<AssignmentResponseDTO>(assignmentResponseDTO,HttpStatus.OK);
         }
