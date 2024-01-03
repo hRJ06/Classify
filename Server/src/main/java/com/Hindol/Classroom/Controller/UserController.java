@@ -38,7 +38,7 @@ public class UserController {
     public ResponseEntity<?> generateToken(@RequestBody ResetPasswordTokenDTO resetPasswordTokenDTO) {
         String email = resetPasswordTokenDTO.getEmail();
         TokenDTO tokenDTO = this.userService.generateToken(email);
-        if(tokenDTO.getSuccess()) {
+        if(tokenDTO != null) {
             return new ResponseEntity<TokenDTO>(tokenDTO,HttpStatus.OK);
         }
         else {
@@ -48,11 +48,11 @@ public class UserController {
     @PostMapping("/resetPassword/{token}")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDTO resetPasswordDTO, @PathVariable String token) {
         TokenDTO tokenDTO = this.userService.resetPassword(resetPasswordDTO,token);
-        if(tokenDTO.getSuccess()) {
-            return new ResponseEntity<TokenDTO>(tokenDTO,HttpStatus.OK);
+        if(tokenDTO != null) {
+            return new ResponseEntity<TokenDTO>(tokenDTO, HttpStatus.OK);
         }
         else {
-            return new ResponseEntity<TokenDTO>(tokenDTO,HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<TokenDTO>(tokenDTO, HttpStatus.BAD_REQUEST);
         }
     }
 }

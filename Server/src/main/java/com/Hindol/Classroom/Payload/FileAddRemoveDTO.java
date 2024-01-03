@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class FileRemoveDTO {
+public class FileAddRemoveDTO {
     private String result;
     private Boolean success;
 }

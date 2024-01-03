@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -30,16 +30,15 @@ const Login = () => {
     console.log('Form submitted:', formData);
     try {
       const response = await axios.post('http://localhost:8080/api/v1/user/login', formData);
-      console.log(response)
-      const token = response?.data?.token
-      if(token) {
-        toast.success(response?.data?.message)
-        localStorage.setItem('token',token)
-        localStorage.setItem('Role',response?.data?.role)
-        navigate('/')
-      }
-      else {
-        toast.error(response?.data?.message)
+      console.log(response);
+      const token = response?.data?.token;
+      if (token) {
+        toast.success(response?.data?.message);
+        localStorage.setItem('token', token);
+        localStorage.setItem('Role', response?.data?.role);
+        navigate('/');
+      } else {
+        toast.error(response?.data?.message);
       }
     } catch (error) {
       toast.error('Login Failed');
@@ -83,7 +82,12 @@ const Login = () => {
             </div>
           </div>
 
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Login</button>
+          <div className="flex items-center justify-between mb-4">
+            <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Login</button>
+            <div className="text-blue-500 text-sm">
+              <Link to="/forgot-password">Forgot Password?</Link>
+            </div>
+          </div>
         </form>
       </div>
     </div>

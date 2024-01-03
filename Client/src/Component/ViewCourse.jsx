@@ -1,5 +1,3 @@
-// ... (Other imports)
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import '../App.css';
@@ -11,6 +9,7 @@ const ViewCourse = () => {
   const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
   const [newCourseName, setNewCourseName] = useState('');
   const navigate = useNavigate();
+  const role = localStorage.getItem('Role');
 
   useEffect(() => {
     const getRandomImage = () => {
@@ -69,14 +68,17 @@ const ViewCourse = () => {
 
   return (
     <div className="container mx-auto mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 font-ubuntu relative">
-      <div className="absolute top-0 right-0 m-4">
-        <button
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          onClick={() => setShowCreateCourseModal(true)}
-        >
-          +
-        </button>
-      </div>
+      {
+        role === "INSTRUCTOR" && 
+        <div className="absolute top-0 right-0 m-4">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            onClick={() => setShowCreateCourseModal(true)}
+          >
+            +
+          </button>
+        </div>
+      }
 
       {courses.map(course => (
         <div key={course.id} className="bg-white rounded-lg overflow-hidden shadow-md text-center border border-gray-300">

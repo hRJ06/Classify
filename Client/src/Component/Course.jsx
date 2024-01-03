@@ -21,6 +21,11 @@ const Course = () => {
   const [newSubmissionData, setNewSubmissionData] = useState({
     uploadedFiles: []
   })
+
+  const [newFileAssignmentData, setNewFileAssignmentData] = useState({
+    uploadedFiles: []
+  })
+
   const { courseId } = useParams();
   const [activeTab, setActiveTab] = useState("assignments");
   const [assignments, setAssignments] = useState([]);
@@ -38,6 +43,43 @@ const Course = () => {
   const [removeSubmissionModal, setRemoveSubmissionModal] = useState(false);
   const [addSubmissionModal, setAddSubmissionModal] = useState(false);
   const [addSubmissionAssignment, setAddSubmissionAssignment] = useState(null);
+  const [addFileAssignmentModal, setAddFileAssignmentModal] = useState(false);
+  const [addFileAssignment, setAddFileAssignment] = useState(null);
+  const handleAddFileAssignment = async() => {
+    if(newFileAssignmentData.uploadedFiles.length <= 0) {
+      toast.error("Please Attach A File")
+      return;
+    }
+    const filesArray = Array.from(newFileAssignmentData.uploadedFiles)
+    const formData = new FormData();
+    for(let i = 0; i < filesArray.length; i++) {
+      formData.append('files', filesArray[i]);
+    }
+    toast.loading("Adding File(s)")
+    const response = await axios.put(`http://localhost:8080/api/v1/file/add/assignment/${addFileAssignment}`,formData, {
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    toast.dismiss()
+    if(response?.data?.success) {
+      toast.success(response?.data?.result)
+    }
+    else {
+      toast.error(response?.data?.result)
+    }
+    setNewFileAssignmentData({
+      ...newFileAssignmentData,
+      uploadedFiles: []
+    })
+    setAddFileAssignment(null);
+    if(response?.data?.success) {
+      const result = setTimeout(() => {
+        window.location.reload()
+      },3000)
+    }
+  }
+
   const handleAddSubmissionModal = (assignment) => {
     const hasSubmission = assignment.submissions.length > 0;
     setAddSubmissionAssignment(assignment.id)
@@ -48,7 +90,7 @@ const Course = () => {
     setAddSubmissionModal(true);
   }
   const handleAddSubmission = async() => {
-    if(newSubmissionData.uploadedFiles.length < 0) {
+    if(newSubmissionData.uploadedFiles.length <= 0) {
       toast.error("Please Attach A File");
       return;
     }
@@ -438,6 +480,18 @@ const Course = () => {
                           onClick = {() => handleAddSubmissionModal(assignment)}
                         >
                           ADD SUBMISSION
+                        </button>
+                      )}
+                      {
+                        role === "INSTRUCTOR" && (
+                        <button
+                          className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
+                          onClick = {() => {
+                            setAddFileAssignmentModal(true)
+                            setAddFileAssignment(assignment.id);
+                          }}
+                        >
+                          ADD FILE
                         </button>
                       )}
                     </div>
@@ -871,6 +925,41 @@ const Course = () => {
             </div>
         </div>
       )} 
+      {addFileAssignmentModal && (
+        <div className="fixed inset-0 flex items-center justify-center">
+            <div className="bg-black opacity-75 fixed inset-0"></div>
+            <div className="bg-white p-8 z-10">
+                <h2 className="text-2xl font-bold mb-4">ADD FILE</h2>
+                <label className="block mb-2">
+                  UPLOAD FILE
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(e) =>
+                      setNewFileAssignmentData({
+                        ...newFileAssignmentData,
+                        uploadedFiles: e.target.files,
+                      })
+                    }
+                    className="border rounded w-full p-2"
+                  />
+                </label>
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={handleAddFileAssignment}
+                >
+                  ADD FILE
+                </button>
+                <button
+                  className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                  onClick={() => setAddFileAssignmentModal(false)}
+                >
+                  CANCEL
+                </button>
+            </div>
+        </div>
+      )} 
+
     </div>
   );
 };

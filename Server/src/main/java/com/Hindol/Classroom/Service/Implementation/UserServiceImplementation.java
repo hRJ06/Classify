@@ -91,7 +91,7 @@ public class UserServiceImplementation implements UserService {
     public TokenDTO generateToken(String email) {
         try {
             User user = this.userRepository.findByEmail(email);
-            if (user != null) {
+            if(user != null) {
                 String token = this.getToken();
                 LocalDateTime now = LocalDateTime.now();
                 LocalDateTime expiryTime = now.plusMinutes(1);
@@ -102,12 +102,12 @@ public class UserServiceImplementation implements UserService {
                 message.setTo(email);
                 message.setFrom(sender);
                 message.setSubject("Password Reset Link");
-                String url = "https://localhost:40000/" + token;
+                String url = "https://localhost:3000/reset-password/" + token;
                 message.setText("Please click on the URL {} to reset your password.".format(url));
                 javaMailSender.send(message);
-                return new TokenDTO("Successfully send Reset Password Link to email", true);
+                return new TokenDTO("Successfully Send Reset Password Link to Email", true);
             } else {
-                throw new RuntimeException("Unable to fetch User with Email " + email);
+                return new TokenDTO("Enter A Valid Email",true);
             }
         } catch (Exception e) {
             return new TokenDTO(e.getMessage(), false);
@@ -123,13 +123,13 @@ public class UserServiceImplementation implements UserService {
             LocalDateTime expiryTime = user.getResetPasswordTokenExpires();
             LocalDateTime now = LocalDateTime.now();
             if (now.compareTo(expiryTime) > 0) {
-                return new TokenDTO("The token has expired. Please generate a new token", false);
+                return new TokenDTO("The Token has expired. Please Generate a New token", false);
             }
             else {
                 String hashedPassword = this.bCryptPasswordEncoder.encode(resetPasswordDTO.getPassword());
                 user.setPassword(hashedPassword);
                 this.userRepository.save(user);
-                return new TokenDTO("Successfully changed password", true);
+                return new TokenDTO("Successfully Changed Password", true);
             }
         } else {
             return new TokenDTO("Please provide a valid token", false);
