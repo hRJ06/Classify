@@ -18,6 +18,9 @@ const Course = () => {
     content: "",
     uploadedFiles: [] 
   })
+  const [newSubmissionData, setNewSubmissionData] = useState({
+    uploadedFiles: []
+  })
   const { courseId } = useParams();
   const [activeTab, setActiveTab] = useState("assignments");
   const [assignments, setAssignments] = useState([]);
@@ -33,7 +36,51 @@ const Course = () => {
   const [fileToDelete, setFileToDelete] = useState(null);
   const role = localStorage.getItem('Role');
   const [removeSubmissionModal, setRemoveSubmissionModal] = useState(false);
-  
+  const [addSubmissionModal, setAddSubmissionModal] = useState(false);
+  const [addSubmissionAssignment, setAddSubmissionAssignment] = useState(null);
+  const handleAddSubmissionModal = (assignment) => {
+    const hasSubmission = assignment.submissions.length > 0;
+    setAddSubmissionAssignment(assignment.id)
+    if(hasSubmission) {
+      toast.error("Please Remove Your Current Submission");
+      return;
+    }
+    setAddSubmissionModal(true);
+  }
+  const handleAddSubmission = async() => {
+    if(newSubmissionData.uploadedFiles.length < 0) {
+      toast.error("Please Attach A File");
+      return;
+    }
+    const formData = new FormData();
+    const filesArray = Array.from(newSubmissionData.uploadedFiles);
+    for(let i = 0; i<filesArray.length; i++) {
+      formData.append('files',filesArray[i]);
+    }
+    toast.loading('Adding Your Submission');
+    const response = await axios.post(`http://localhost:8080/api/v1/assignment/submitSubmission/${addSubmissionAssignment}`,formData,{
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    toast.dismiss()
+    if(response?.data?.success) {
+      toast.success(response?.data?.message);
+    }
+    else {
+      toast.error(response?.data?.message);
+    }
+    setNewSubmissionData({
+      ...newSubmissionData,
+      uploadedFiles: []
+    })
+    setAddSubmissionModal(false);
+    if(response?.data?.success) {
+      const reload = setTimeout(() => {
+        window.location.reload();
+      },4000)
+    }
+  }
   const handleRemoveSubmission = () => {
     setRemoveSubmissionModal(true);
   }
@@ -48,7 +95,7 @@ const Course = () => {
       }
     })
     toast.dismiss()
-    setRemoveSubmissionModal(true);
+    setRemoveSubmissionModal(false);
     if(response?.data?.success) {
       toast.success(response?.data?.message)
     }
@@ -388,6 +435,7 @@ const Course = () => {
                         role === "STUDENT" && (
                         <button
                           className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
+                          onClick = {() => handleAddSubmissionModal(assignment)}
                         >
                           ADD SUBMISSION
                         </button>
@@ -785,6 +833,40 @@ const Course = () => {
                     onClick={handleCancelRemoveSubmission}
                 >
                     No
+                </button>
+            </div>
+        </div>
+      )} 
+      {addSubmissionModal && (
+        <div className="fixed inset-0 flex items-center justify-center">
+            <div className="bg-black opacity-75 fixed inset-0"></div>
+            <div className="bg-white p-8 z-10">
+                <h2 className="text-2xl font-bold mb-4">ADD SUBMISSION</h2>
+                <label className="block mb-2">
+                  UPLOAD FILE
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(e) =>
+                      setNewSubmissionData({
+                        ...newSubmissionData,
+                        uploadedFiles: e.target.files,
+                      })
+                    }
+                    className="border rounded w-full p-2"
+                  />
+                </label>
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={handleAddSubmission}
+                >
+                  ADD SUBMISSION
+                </button>
+                <button
+                  className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                  onClick={() => setAddSubmissionModal(false)}
+                >
+                  CANCEL
                 </button>
             </div>
         </div>

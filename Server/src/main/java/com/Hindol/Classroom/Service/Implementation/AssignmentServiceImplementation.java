@@ -79,7 +79,7 @@ public class AssignmentServiceImplementation implements AssignmentService {
             List<Submission> submissionList = assignment.getSubmissions();
             for(Submission submission : submissionList) {
                 if(submission.getUser().equals(user)) {
-                    return new AssignmentResponseDTO("You have already given your submission",false);
+                    return new AssignmentResponseDTO("You have Already given your Submission",false);
                 }
             }
             Course course = assignment.getCourse();
@@ -107,7 +107,7 @@ public class AssignmentServiceImplementation implements AssignmentService {
                 user.getSubmissions().add(submission);
                 this.userRepository.save(user);
                 this.assignmentRepository.save(assignment);
-                return new AssignmentResponseDTO("Successfully added your submission to Assignment",true);
+                return new AssignmentResponseDTO("Successfully Added Your Submission To Assignment",true);
             }
             else {
                 return new AssignmentResponseDTO("You need to first enroll in this Course in order to submit a submission for this assignment",false);
