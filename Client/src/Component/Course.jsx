@@ -20,6 +20,9 @@ const Course = () => {
     description: editAssignment ? editAssignment.description : '',
     fullMarks: editAssignment ? editAssignment.fullMarks : '',
   })
+  const [editCommentData, setEditCommentData] = useState({
+    comment: ''
+  })
   const [newAnnouncementData, setNewAnnouncementData] = useState({
     name: "",
     content: "",
@@ -52,6 +55,7 @@ const Course = () => {
   const [addSubmissionAssignment, setAddSubmissionAssignment] = useState(null);
   const [addFileAssignmentModal, setAddFileAssignmentModal] = useState(false);
   const [addFileAssignment, setAddFileAssignment] = useState(null);
+  const [editCommentSubmissionId, setEditCommentSubmissionId] = useState(null);
   const handleEditAssignment = async() => {
     const response = await axios.put(`http://localhost:8080/api/v1/assignment/editAssignment/${editAssignment.id}`,editAssignmentData,{
       headers: {
@@ -211,6 +215,25 @@ const Course = () => {
   const handleEditMarks = async (submissionId) => {
     setEditingSubmissionId(submissionId);
   };
+  const handleEditComment = async () => {
+    if(editCommentData.comment === editCommentSubmissionId.comment) {
+      toast.error('Please Edit')
+      return;
+    }
+    console.log(typeof(editCommentData));
+    const response = await axios.put(`http://localhost:8080/api/v1/submission/addComment/${editCommentSubmissionId.id}`,editCommentData,{
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    if(response?.data?.success) {
+      toast.success('Comment Added Successfully');
+      setEditCommentSubmissionId(null);
+    }
+    else {
+      toast.error(response?.data?.message)
+    }
+  }
   const handleSaveMarks = async () => {
     const response = await axios.post(
       `http://localhost:8080/api/v1/submission/editMarks/${editingSubmissionId}`,
@@ -619,6 +642,11 @@ const Course = () => {
                       <th className="p-4">Submission Date</th>
                       <th className="p-4">Late Status</th>
                       <th className="p-4">Files</th>
+                      <th className="p-4">Comment</th>
+                      {
+                        role === "INSTRUCTOR" &&
+                        <th className="p-4"></th>
+                      }
                       <th className="p-4">Marks</th>
                       <th className="p-4"></th>
                     </tr>
@@ -661,6 +689,33 @@ const Course = () => {
                               ))}
                             </ul>
                           </td>
+                          
+                          <td className="p-4 relative">
+                            {submission.comment === null ? (
+                              <span className="text-gray-500">N/A</span>
+                            ) : (
+                              <>
+                                {submission.comment}
+                              </>
+                            )}
+                          </td>
+                          {
+                            role === "INSTRUCTOR" && 
+                            <td>
+                            <button
+                              className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                              onClick={() => {
+                                  setEditCommentSubmissionId(submission)
+                                  setEditCommentData({
+                                    comment: submission.comment
+                                  })
+                                }
+                              }
+                            >
+                              Edit
+                            </button>
+                          </td>
+                          }
                           <td className="p-4 relative">
                             {submission.marks === null ? (
                               <span className="text-gray-500">N/A</span>
@@ -740,6 +795,40 @@ const Course = () => {
           </div>
         </div>
       )}
+      {
+        editCommentSubmissionId && (
+          <div className="fixed inset-0 flex items-center justify-center">
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10">
+            <h2 className="text-2xl font-bold mb-4">EDIT COMMENT</h2>
+            <label className="block mb-2">
+              Comment
+              <input
+                type="text"
+                value={editCommentData.comment}
+                onChange={(e) => setEditCommentData({
+                  ...editCommentData,
+                  comment: e.target.value
+                })}
+                className="border rounded w-full p-2"
+              />
+            </label>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={handleEditComment}
+            >
+              Save
+            </button>
+            <button
+              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={() => setEditCommentSubmissionId(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+        )
+      }
       {/* Add Assignment Button */}
 
       {/* Add Assignment Modal */}

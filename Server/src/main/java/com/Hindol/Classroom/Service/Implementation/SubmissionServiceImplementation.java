@@ -4,6 +4,7 @@ import com.Hindol.Classroom.Entity.Assignment;
 import com.Hindol.Classroom.Entity.Submission;
 import com.Hindol.Classroom.Entity.User;
 import com.Hindol.Classroom.Payload.AssignmentSubmissionDTO;
+import com.Hindol.Classroom.Payload.EditCommentResponseDTO;
 import com.Hindol.Classroom.Payload.EditMarksResponseDTO;
 import com.Hindol.Classroom.Repository.AssignmentRepository;
 import com.Hindol.Classroom.Repository.SubmissionRepository;
@@ -79,6 +80,22 @@ public class SubmissionServiceImplementation implements SubmissionService {
         }
         catch (Exception e) {
             return null;
+        }
+    }
+
+    @Override
+    public EditCommentResponseDTO editSubmissionComment(String email, String role, Integer submissionId, String comment) {
+        try {
+            if(role.equals("STUDENT")) {
+                return new EditCommentResponseDTO("You must be an INSTRUCTOR",false);
+            }
+            Submission submission = this.submissionRepository.findById(submissionId).orElseThrow(() -> new RuntimeException("Unable to fetch Submission with ID " + submissionId));
+            submission.setComment(comment);
+            this.submissionRepository.save(submission);
+            return new EditCommentResponseDTO("Successfully Added Comment To Submission",true);
+        }
+        catch (Exception e) {
+            return new EditCommentResponseDTO(e.getMessage(),false);
         }
     }
 }

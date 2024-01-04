@@ -36,4 +36,5 @@ public class Submission {
     @JoinColumn(name = "submission_id")
     private List<File> file;
     private Integer marks;
+    private String comment;
 }

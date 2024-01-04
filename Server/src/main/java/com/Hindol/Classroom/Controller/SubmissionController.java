@@ -1,8 +1,6 @@
 package com.Hindol.Classroom.Controller;
 
-import com.Hindol.Classroom.Payload.AssignmentSubmissionDTO;
-import com.Hindol.Classroom.Payload.EditMarksRequestDTO;
-import com.Hindol.Classroom.Payload.EditMarksResponseDTO;
+import com.Hindol.Classroom.Payload.*;
 import com.Hindol.Classroom.Service.SubmissionService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +48,18 @@ public class SubmissionController {
         }
         else {
             return new ResponseEntity<EditMarksResponseDTO>(editMarksResponseDTO,HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PutMapping("/addComment/{submissionId}")
+    public ResponseEntity<?> editSubmissionComment(@PathVariable Integer submissionId, HttpServletRequest request, @RequestBody EditCommentRequestDTO editCommentRequestDTO) {
+        String email = (String) request.getAttribute("email");
+        String role = (String) request.getAttribute("Role");
+        EditCommentResponseDTO editCommentResponseDTO = this.submissionService.editSubmissionComment(email,role,submissionId, editCommentRequestDTO.getComment());
+        if(editCommentResponseDTO.getSuccess()) {
+            return new ResponseEntity<EditCommentResponseDTO>(editCommentResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<EditCommentResponseDTO>(editCommentResponseDTO,HttpStatus.BAD_REQUEST);
         }
     }
 }
