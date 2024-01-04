@@ -67,4 +67,14 @@ public class AssignmentController {
             return new ResponseEntity<AssignmentResponseDTO>(assignmentResponseDTO,HttpStatus.BAD_REQUEST);
         }
     }
+    @PutMapping("/check-submission")
+    public ResponseEntity<?> checkSubmission() {
+        try {
+            this.assignmentService.checkSubmission();
+            return ResponseEntity.ok("Executed ");
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body("Internal Server Error");
+        }
+    }
 }

@@ -13,4 +13,5 @@ public interface AssignmentService {
     /* INSTRUCTOR */
     public AssignmentSubmissionDTO getAllSubmission(String email, String role, Integer assignmentId);
     public AssignmentResponseDTO editAssignment(EditAssignmentDTO editAssignmentDTO,String email,String role,Integer assignmentId);
+    public void checkSubmission();
 }

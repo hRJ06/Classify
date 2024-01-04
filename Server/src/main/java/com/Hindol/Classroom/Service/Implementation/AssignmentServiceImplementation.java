@@ -7,18 +7,28 @@ import com.Hindol.Classroom.Payload.EditAssignmentDTO;
 import com.Hindol.Classroom.Repository.*;
 import com.Hindol.Classroom.Service.AssignmentService;
 import com.cloudinary.Cloudinary;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.core.Local;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class AssignmentServiceImplementation implements AssignmentService {
     @Autowired
     private SubmissionRepository submissionRepository;
@@ -32,6 +42,9 @@ public class AssignmentServiceImplementation implements AssignmentService {
     private FileRepository fileRepository;
     @Autowired
     private Cloudinary cloudinary;
+    @Autowired
+    private JavaMailSender javaMailSender;
+    @Value("${spring.mail.username}") private String sender;
 
     @Override
     public AssignmentResponseDTO removeSubmission(Integer assignmentId, String email, String role) {
@@ -170,6 +183,69 @@ public class AssignmentServiceImplementation implements AssignmentService {
         catch (Exception e) {
             System.out.println(e);
             return new AssignmentResponseDTO(e.getMessage(),false);
+        }
+    }
+
+    @Override
+    @Transactional
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void checkSubmission() {
+        try {
+            List<Assignment> assignmentList = this.assignmentRepository.findAll();
+            LocalDateTime currentDateTime = LocalDateTime.now();
+            for(Assignment assignment : assignmentList) {
+                LocalDateTime deadline = assignment.getDeadline();
+                boolean isPastDeadline = currentDateTime.isAfter(deadline);
+                long hoursDifference  = ChronoUnit.HOURS.between(currentDateTime,deadline);
+                if(isPastDeadline || !(hoursDifference <= 24)) continue;
+                List<Submission> submissions = assignment.getSubmissions();
+                List<User> enrolledUser = assignment.getCourse().getEnrolledUsers();
+                List<User> userSubmit = new ArrayList<>();
+                for(Submission submission : submissions) {
+                    userSubmit.add(submission.getUser());
+                }
+                List<User> toSendEmail = new ArrayList<>();
+                for(User user : enrolledUser) {
+                    if(userSubmit.contains(user)) continue;
+                    toSendEmail.add(user);
+                }
+                for(User user : toSendEmail) {
+                    MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+                    MimeMessageHelper helper = new MimeMessageHelper(mimeMessage,"utf-8");
+                    helper.setFrom(sender);
+                    helper.setTo(user.getEmail());
+                    String emailContent = String.format("""
+                                                        <html>
+                                                        <head>
+                                                            <style>
+                                                                body {
+                                                                    font-family: 'Arial', sans-serif;
+                                                                    background-color: #f0f8ff; /* Light Blue background */
+                                                                    color: #006400; /* Dark Green text color */
+                                                                    padding: 20px;
+                                                                }
+                                                                p {
+                                                                    margin-bottom: 10px;
+                                                                }
+                                                            </style>
+                                                        </head>
+                                                        <body>
+                                                            <p>Dear %s,</p>
+                                                            <p>This is a reminder that the submission for the assignment "%s" in the course "%s" is due soon.</p>
+                                                            <p>Please ensure that you submit your work on time.</p>
+                                                            <p>Best regards,<br>Your Organization</p>
+                                                        </body>
+                                                        </html>
+                                                        """, user.getFirstName() + " " + user.getLastName(), assignment.getAssignmentName(), assignment.getCourse().getCourseName());
+
+                    helper.setText(emailContent, true);
+                    helper.setSubject("Reminder! Submission Due For " + assignment.getAssignmentName() + " For Course " + assignment.getCourse().getCourseName());
+                    javaMailSender.send(mimeMessage);
+                }
+            }
+        }
+        catch (Exception e) {
+            log.error("An error occurred while sending reminder emails", e);
         }
     }
 
