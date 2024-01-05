@@ -1,5 +1,6 @@
 package com.Hindol.Classroom.Service;
 
+import com.Hindol.Classroom.Entity.PrivateChat;
 import com.Hindol.Classroom.Payload.AssignmentResponseDTO;
 import com.Hindol.Classroom.Payload.AssignmentSubmissionDTO;
 import com.Hindol.Classroom.Payload.EditAssignmentDTO;
@@ -14,4 +15,5 @@ public interface AssignmentService {
     public AssignmentSubmissionDTO getAllSubmission(String email, String role, Integer assignmentId);
     public AssignmentResponseDTO editAssignment(EditAssignmentDTO editAssignmentDTO,String email,String role,Integer assignmentId);
     public void checkSubmission();
+    public PrivateChat createChat(String email, String role, Integer assignmentId, Integer studentId);
 }

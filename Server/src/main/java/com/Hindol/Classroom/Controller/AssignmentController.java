@@ -1,5 +1,6 @@
 package com.Hindol.Classroom.Controller;
 
+import com.Hindol.Classroom.Entity.PrivateChat;
 import com.Hindol.Classroom.Payload.AssignmentResponseDTO;
 import com.Hindol.Classroom.Payload.AssignmentSubmissionDTO;
 import com.Hindol.Classroom.Payload.EditAssignmentDTO;
@@ -71,7 +72,24 @@ public class AssignmentController {
     public ResponseEntity<?> checkSubmission() {
         try {
             this.assignmentService.checkSubmission();
-            return ResponseEntity.ok("Executed ");
+            return ResponseEntity.ok("Executed");
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body("Internal Server Error");
+        }
+    }
+    @PostMapping("/create-chat/{assignmentId}")
+    public ResponseEntity<?> createChat(HttpServletRequest request,@PathVariable Integer assignmentId,@RequestParam(name = "StudentId", required = false) Integer studentId) {
+        try {
+            String email = (String) request.getAttribute("email");
+            String role = (String) request.getAttribute("Role");
+            PrivateChat privateChat = this.assignmentService.createChat(email,role,assignmentId,studentId);
+            if(privateChat != null) {
+                return ResponseEntity.ok("Chat Created");
+            }
+            else {
+                return ResponseEntity.badRequest().body("Internal Server Error");
+            }
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().body("Internal Server Error");

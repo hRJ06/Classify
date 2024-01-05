@@ -19,5 +19,6 @@ public class WebConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(authenticationInterceptor()).addPathPatterns("/api/v1/assignment/**").excludePathPatterns("/api/v1/assignment/check-submission");
         registry.addInterceptor(authenticationInterceptor()).addPathPatterns("/api/v1/submission/**");
         registry.addInterceptor(authenticationInterceptor()).addPathPatterns("/api/v1/file/**");
+        registry.addInterceptor(authenticationInterceptor()).addPathPatterns("/api/v1/chat/**");
     }
 }

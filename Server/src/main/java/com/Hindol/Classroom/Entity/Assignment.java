@@ -38,4 +38,6 @@ public class Assignment {
     private String assignmentName;
     private LocalDateTime deadline;
     private Integer fullMarks;
+    @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL)
+    private List<PrivateChat> privateChats;
 }

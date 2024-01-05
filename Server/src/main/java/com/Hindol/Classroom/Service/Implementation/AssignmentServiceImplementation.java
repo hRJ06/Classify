@@ -26,6 +26,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -42,6 +43,8 @@ public class AssignmentServiceImplementation implements AssignmentService {
     private FileRepository fileRepository;
     @Autowired
     private Cloudinary cloudinary;
+    @Autowired
+    private PrivateChatRepository privateChatRepository;
     @Autowired
     private JavaMailSender javaMailSender;
     @Value("${spring.mail.username}") private String sender;
@@ -249,4 +252,50 @@ public class AssignmentServiceImplementation implements AssignmentService {
         }
     }
 
+    @Override
+    public PrivateChat createChat(String email, String role,Integer assignmentId,Integer studentId) {
+        try {
+            User user = this.userRepository.findByEmail(email);
+            Assignment assignment = this.assignmentRepository.findById(assignmentId).orElseThrow(() -> new RuntimeException("Unable to find Assignment with ID " + assignmentId));
+            if(user != null) {
+                if(role.equals("STUDENT")) {
+                    Optional<PrivateChat> optionalPrivateChat = this.privateChatRepository.findByUserAndAssignment(user,assignment);
+                    if(optionalPrivateChat.isEmpty()) {
+                        PrivateChat privateChat = new PrivateChat();
+                        privateChat.setUser(user);
+                        privateChat.setAssignment(assignment);
+                        PrivateChat savedPrivateChat = this.privateChatRepository.save(privateChat);
+                        assignment.getPrivateChats().add(savedPrivateChat);
+                        return savedPrivateChat;
+                    }
+                    else {
+                        return optionalPrivateChat.get(); /* CHAT IS ALREADY THERE */
+                    }
+                }
+                else {
+                    /* FETCH STUDENT TO SET USER */
+                    User student = this.userRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Unable to fetch Student With ID " + studentId));
+                    Optional<PrivateChat> optionalPrivateChat = this.privateChatRepository.findByUserAndAssignment(student,assignment);
+                    if(optionalPrivateChat.isEmpty()) {
+                        PrivateChat privateChat = new PrivateChat();
+                        privateChat.setUser(student);
+                        privateChat.setAssignment(assignment);
+                        PrivateChat savedPrivateChat = this.privateChatRepository.save(privateChat);
+                        assignment.getPrivateChats().add(savedPrivateChat);
+                        return savedPrivateChat;
+                    }
+                    else {
+                        return optionalPrivateChat.get(); /* CHAT IS ALREADY THERE */
+                    }
+                }
+            }
+            else {
+                return null;
+            }
+        }
+        catch (Exception e) {
+            System.out.println(e);
+            return null;
+        }
+    }
 }
