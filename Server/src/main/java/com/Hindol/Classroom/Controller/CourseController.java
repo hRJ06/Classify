@@ -122,6 +122,33 @@ public class CourseController {
         else {
             return new ResponseEntity<>(courseAnnouncementResponseDTO,HttpStatus.BAD_REQUEST);
         }
-
+    }
+    @PutMapping("/archieve/{courseId}")
+    public ResponseEntity<?> archieveCourse(@PathVariable Integer courseId,HttpServletRequest request) {
+        String email = (String) request.getAttribute("email");
+        String Role = (String) request.getAttribute("Role");
+        CourseResponseDTO courseResponseDTO = this.courseService.archieveCourse(courseId,email,Role);
+        if(courseResponseDTO.getSuccess()) {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PutMapping("/unarchieve/{courseId}")
+    public ResponseEntity<?> unarchieveCourse(@PathVariable Integer courseId,HttpServletRequest request) {
+        String email = (String) request.getAttribute("email");
+    }
+    @GetMapping("/get-archieved-courses")
+    public ResponseEntity<?> getArchievedCourses(HttpServletRequest request) {
+        String email = (String) request.getAttribute("email");
+        List<CourseDTO> courseDTOS = this.courseService.getArchievedCourses(email);
+        if(courseDTOS != null) {
+            return new ResponseEntity<List<CourseDTO>>(courseDTOS,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<List<CourseDTO>>(courseDTOS,HttpStatus.BAD_REQUEST);
+        }
     }
 }
+

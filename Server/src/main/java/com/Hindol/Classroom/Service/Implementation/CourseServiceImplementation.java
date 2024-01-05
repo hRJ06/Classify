@@ -264,6 +264,55 @@ public class CourseServiceImplementation implements CourseService {
     }
 
     @Override
+    public CourseResponseDTO archieveCourse(Integer courseId, String email, String role) {
+        try {
+            Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable to Find Course With ID " + courseId));
+            User user = this.userRepository.findByEmail(email);
+            if(user.getArchievedCourses().contains(course)) {
+                return new CourseResponseDTO("Course Already Archieved",false);
+            }
+            user.getArchievedCourses().add(course);
+            this.userRepository.save(user);
+            return new CourseResponseDTO("Archieved Course",true);
+        }
+        catch (Exception e) {
+            return new CourseResponseDTO(e.getMessage(),false);
+        }
+    }
+
+    @Override
+    public List<CourseDTO> getArchievedCourses(String email) {
+        try {
+            User user = this.userRepository.findByEmail(email);
+            List<Course> archievedCourses = user.getArchievedCourses();
+            List<CourseDTO> archievedCourseDTOs = archievedCourses.stream().map(archievedCourse -> this.modelMapper.map(archievedCourse,CourseDTO.class)).collect(Collectors.toList());
+            return archievedCourseDTOs;
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+
+    @Override
+    public CourseResponseDTO unarchieveCourse(Integer courseId, String email) {
+        try {
+            Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable To Find Course With ID " + courseId));
+            User user = this.userRepository.findByEmail(email);
+            if(user.getArchievedCourses().contains(course)) {
+                user.getArchievedCourses().remove(course);
+                this.userRepository.save(user);
+                return new CourseResponseDTO("UnArchieved Course",false);
+            }
+            else {
+                return new CourseResponseDTO("Course is already UnArchieved",false);
+            }
+        }
+        catch (Exception e) {
+            return new CourseResponseDTO(e.getMessage(),false);
+        }
+    }
+
+    @Override
     public CourseDTO createCourse(CourseDTO courseDTO, String email, String role) {
         User user = this.userRepository.findByEmail(email);
         if(role.equals("INSTRUCTOR")) {

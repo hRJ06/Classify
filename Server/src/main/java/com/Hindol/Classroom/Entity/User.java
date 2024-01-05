@@ -40,6 +40,10 @@ public class User {
     @JsonIgnore
     private List<Course> enrolledCourses;
 
+    @ManyToMany(mappedBy = "enrolledUsers")
+    @JsonIgnore
+    private List<Course> archievedCourses;
+
     @Enumerated(EnumType.STRING)
     private Role role;
     @OneToMany(mappedBy = "user")

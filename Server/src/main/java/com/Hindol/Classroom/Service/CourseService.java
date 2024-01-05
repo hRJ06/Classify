@@ -18,4 +18,7 @@ public interface CourseService {
     CourseResponseDTO createAnnouncement(String email,String role,Integer courseId,List<MultipartFile> file,String name,String content);
     CourseAnnouncementResponseDTO getAnnouncement(Integer courseId);
     CourseDTO getCourseDetails(Integer courseId);
+    CourseResponseDTO archieveCourse(Integer courseId,String email,String role);
+    List<CourseDTO> getArchievedCourses(String email);
+    CourseResponseDTO unarchieveCourse(Integer courseId,String email);
 }
