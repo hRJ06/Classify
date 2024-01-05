@@ -39,5 +39,6 @@ public class Assignment {
     private LocalDateTime deadline;
     private Integer fullMarks;
     @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<PrivateChat> privateChats;
 }

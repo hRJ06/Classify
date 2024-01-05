@@ -85,7 +85,7 @@ public class AssignmentController {
             String role = (String) request.getAttribute("Role");
             PrivateChat privateChat = this.assignmentService.createChat(email,role,assignmentId,studentId);
             if(privateChat != null) {
-                return ResponseEntity.ok("Chat Created");
+                return new ResponseEntity<PrivateChat>(privateChat,HttpStatus.OK);
             }
             else {
                 return ResponseEntity.badRequest().body("Internal Server Error");

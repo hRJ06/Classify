@@ -9,7 +9,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    role: '',
+    role: 'STUDENT',
     email: '',
     password: '',
   });

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { AiOutlineMessage } from 'react-icons/ai';
 import axios from "axios";
 import toast from "react-hot-toast";
 
@@ -56,6 +57,51 @@ const Course = () => {
   const [addFileAssignmentModal, setAddFileAssignmentModal] = useState(false);
   const [addFileAssignment, setAddFileAssignment] = useState(null);
   const [editCommentSubmissionId, setEditCommentSubmissionId] = useState(null);
+  const [privateChat,setPrivateChat] = useState(null);
+  const [newMessage, setNewMessage] = useState('');
+  const [chatAssignment, setChatAssignment] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 3;
+
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = enrolledUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  const handleNextPage = () => {
+    setCurrentPage(currentPage + 1);
+  };
+
+  const handlePrevPage = () => {
+    setCurrentPage(currentPage - 1);
+  };
+  const isNextButtonVisible = indexOfLastUser < enrolledUsers.length;
+  const generateAvatarUrl = (seed) => {
+    const baseUrl = 'https://ui-avatars.com/api/?name=';
+    return `${baseUrl}${seed}`;
+  };
+  const handleSendMessage = async() => {
+    if(newMessage.length <= 0) {
+      toast.error('Please Enter A Message')
+      return;
+    }
+    toast.loading()
+    let response = await axios.post(`http://localhost:8080/api/v1/chat/add-message/${privateChat.id}`,{content: newMessage}, {
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    response = await axios.get(`http://localhost:8080/api/v1/chat/get-message/${privateChat.id}`,{
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    setPrivateChat({
+      ...privateChat,
+      messageList: response?.data?.messageList
+    });
+    setNewMessage('');
+    toast.dismiss()
+  };
   const handleEditAssignment = async() => {
     const response = await axios.put(`http://localhost:8080/api/v1/assignment/editAssignment/${editAssignment.id}`,editAssignmentData,{
       headers: {
@@ -72,6 +118,32 @@ const Course = () => {
       const reload = setTimeout(() => {
         window.location.reload()
       },3000)
+    }
+  }
+  const handleChat = async(param) => {
+    if(role === "STUDENT") {
+      toast.loading()
+      const response = await axios.post(`http://localhost:8080/api/v1/assignment/create-chat/${param.id}`, null, {
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+      toast.dismiss()
+      console.log(response)
+      setPrivateChat(response?.data);
+    }
+    else {
+      toast.loading();
+      const formData = new FormData()
+      formData.append('StudentId',param);
+      const response = await axios.post(`http://localhost:8080/api/v1/assignment/create-chat/${chatAssignment}`, formData, {
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+      toast.dismiss()
+      setChatAssignment(null);
+      setPrivateChat(response?.data);
     }
   }
   const handleAddFileAssignment = async() => {
@@ -214,6 +286,11 @@ const Course = () => {
 
   const handleEditMarks = async (submissionId) => {
     setEditingSubmissionId(submissionId);
+  };
+  const getAvatarInitials = (firstName, lastName) => {
+    const firstInitial = firstName ? firstName.charAt(0) : '';
+    const lastInitial = lastName ? lastName.charAt(0) : '';
+    return firstInitial + lastInitial;
   };
   const handleEditComment = async () => {
     if(editCommentData.comment === editCommentSubmissionId.comment) {
@@ -471,7 +548,6 @@ const Course = () => {
                 <div key={assignment.id} className="mb-4">
                   <div
                     className="flex justify-between items-center cursor-pointer"
-                    onClick={() => toggleDetails(assignment.id)}
                   >
                     <h3 className="text-xl font-bold">
                       {assignment.assignmentName}
@@ -488,7 +564,7 @@ const Course = () => {
                       </button>
                     }
                     {/* Expand/Collapse Button */}
-                    <span>
+                    <span onClick={() => toggleDetails(assignment.id)}>
                       {expandedAssignmentId === assignment.id ? "▲" : "▼"}
                     </span>
                     </div>
@@ -563,6 +639,14 @@ const Course = () => {
                           ADD FILE
                         </button>
                       )}
+                      <button
+                        className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
+                      >
+                        
+                        <div className="flex" onClick={() => role === "STUDENT" ? handleChat(assignment) : setChatAssignment(assignment.id)}>
+                          CHAT <AiOutlineMessage className="ml-2" size={24} />
+                        </div>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1172,6 +1256,133 @@ const Course = () => {
             </div>
         </div>
       )}
+      {
+        privateChat && 
+        <div className="fixed inset-0 flex items-center justify-center">
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10 w-96">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Private Chat</h2>
+            </div>
+            <div className="flex flex-col">
+              {privateChat?.messageList.map((message, index) => (
+                <div key={index} className="flex mb-2">
+                  <div className="flex items-center">
+                    <img
+                      src={generateAvatarUrl(`${message.sender.firstName}+${message.sender.lastName}`)}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full"
+                    />
+                  </div>
+                  <div className="flex flex-col ml-2">
+                    <span className="text-sm font-semibold">
+                      {`${message.sender.firstName} ${message.sender.lastName}`}
+                      {message.sender.role === role && (
+                        <span className="text-xs font-light text-gray-500 ml-1">(You)</span>
+                      )}
+                    </span>
+                    <span>{message.content}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center mt-4">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="flex-grow border rounded-l p-2"
+                placeholder="Type a message..."
+              />
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded-r hover:bg-blue-600"
+                onClick={handleSendMessage}
+              >
+                SEND
+              </button>
+            </div>
+            <div className="flex items-center justify-center mt-4">
+              <button
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                onClick={() => setPrivateChat(null)}
+              >
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      {
+        chatAssignment && (
+          <div className="fixed inset-0 flex items-center justify-center">
+            <div className="bg-black opacity-75 fixed inset-0"></div>
+            <div className="bg-white p-8 z-10">
+              <div className="grid grid-cols-4 gap-4">
+                <div className="p-4 bg-gray-200 text-center font-semibold">No</div>
+                <div className="p-4 bg-gray-200 text-center font-semibold">Name</div>
+                <div className="p-4 bg-gray-200 text-center font-semibold">Email</div>
+                <div className="p-4 bg-gray-200 text-center font-semibold">Action</div>
+
+                {currentUsers.map((user, index) => (
+                  <React.Fragment key={user.id}>
+                    <div className={`p-4 text-center ${index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
+                      {indexOfFirstUser + index + 1}
+                    </div>
+                    <div className={`p-4 text-center ${index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
+                      {user.firstName} {user.lastName}
+                    </div>
+                    <div className={`p-4 text-center ${index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
+                      {user.email}
+                    </div>
+                    <div className={`p-4 text-center ${index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}`}>
+                      <button
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        onClick={() => handleChat(user.id)}
+                      >
+                        View Chat
+                      </button>
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+              <div className="flex justify-between mt-4">
+                <button
+                  className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${
+                    currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+                {isNextButtonVisible && (
+                  <div className="flex justify-end mt-4">
+                    <button
+                      className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded`}
+                      onClick={handleNextPage}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-center mt-4">
+                <button
+                  className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                  onClick={() => {
+                    setChatAssignment(null)
+                    setCurrentPage(1)
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+        </div>
+        )
+      }
+
+
     </div>
   );
 };

@@ -48,13 +48,14 @@ public class PrivateChatServiceImplementation implements PrivateChatService {
         try {
             User user = this.userRepository.findByEmail(email);
             PrivateChat privateChat = this.privateChatRepository.findById(privateChatId).orElseThrow(() -> new RuntimeException("Unable to fetch Private Chat With ID " + privateChatId));
-            if(!privateChat.getUser().equals(user) || !privateChat.getAssignment().getCourse().getInstructor().equals(user)) {
+            if(!privateChat.getUser().equals(user) && !privateChat.getAssignment().getCourse().getInstructor().equals(user)) {
                 return new ChatMessageDTO("You are Not part of this Chat",false,null);
             }
             List<Message> messageList = privateChat.getMessageList();
             return new ChatMessageDTO("Successfully fetched All Messages",true,messageList);
         }
         catch (Exception e) {
+            System.out.println(e);
             return new ChatMessageDTO(e.getMessage(),false,null);
         }
     }
