@@ -50,4 +50,7 @@ public class Course {
     )
     @JsonIgnore
     private List<User> archivedUsers;
+    @OneToMany(mappedBy = "course",cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Message> messageList;
 }

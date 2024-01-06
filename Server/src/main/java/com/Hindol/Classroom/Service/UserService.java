@@ -11,4 +11,5 @@ public interface UserService {
     TokenDTO generateToken(String email);
     TokenDTO resetPassword(ResetPasswordDTO resetPasswordDTO, String token);
     UserDTO getDetails(String token);
+
 }

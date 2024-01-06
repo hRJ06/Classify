@@ -1,10 +1,7 @@
 package com.Hindol.Classroom.Service.Implementation;
 
 import com.Hindol.Classroom.Entity.*;
-import com.Hindol.Classroom.Payload.CourseAnnouncementResponseDTO;
-import com.Hindol.Classroom.Payload.CourseAssignmentResponseDTO;
-import com.Hindol.Classroom.Payload.CourseDTO;
-import com.Hindol.Classroom.Payload.CourseResponseDTO;
+import com.Hindol.Classroom.Payload.*;
 import com.Hindol.Classroom.Repository.*;
 import com.Hindol.Classroom.Service.CourseService;
 import com.cloudinary.Cloudinary;
@@ -36,6 +33,8 @@ public class CourseServiceImplementation implements CourseService {
     private FileRepository fileRepository;
     @Autowired
     private AnnouncementRepository announcementRepository;
+    @Autowired
+    private MessageRepository messageRepository;
     @Autowired
     private Cloudinary cloudinary;
     @Autowired
@@ -329,6 +328,48 @@ public class CourseServiceImplementation implements CourseService {
         }
         catch (Exception e) {
             return new CourseResponseDTO(e.getMessage(),false);
+        }
+    }
+
+    @Override
+    public CourseResponseDTO addDiscussionMessage(Integer courseId,DiscussionMessageRequestDTO discussionMessageRequestDTO, String email, String role) {
+        try {
+            User user = this.userRepository.findByEmail(email);
+            Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable To Fetch Course With ID " + courseId));
+            if(course.getEnrolledUsers().contains(user) || course.getInstructor().equals(user)) {
+                Message message = new Message();
+                message.setSender(user);
+                message.setCourse(course);
+                message.setContent(discussionMessageRequestDTO.getContent());
+                Message savedMessage = this.messageRepository.save(message);
+                course.getMessageList().add(savedMessage);
+                this.courseRepository.save(course);
+                return new CourseResponseDTO("Successfully Added Message To Dicussion", true);
+            }
+            else {
+                return new CourseResponseDTO("You Need To Be A Part Of this Course", true);
+            }
+        }
+        catch (Exception e) {
+            return new CourseResponseDTO(e.getMessage(),false);
+        }
+    }
+
+    @Override
+    public DiscussionMessageResponseDTO getDiscussionMessage(Integer courseId, String email, String role) {
+        try {
+            User user = this.userRepository.findByEmail(email);
+            Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable To Fetch Course With ID " + courseId));
+            if(course.getEnrolledUsers().contains(user) || course.getInstructor().equals(user)) {
+                List<Message> discussionMessageList = course.getMessageList();
+                return new DiscussionMessageResponseDTO("Successfully fetched All Discussion Messages",true,discussionMessageList);
+            }
+            else {
+                return new DiscussionMessageResponseDTO("You Need To Be A Part Of this Course",false,null);
+            }
+        }
+        catch (Exception e) {
+            return new DiscussionMessageResponseDTO(e.getMessage(),false,null);
         }
     }
 

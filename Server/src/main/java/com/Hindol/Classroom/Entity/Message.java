@@ -25,4 +25,8 @@ public class Message {
     @JsonIgnore
     private PrivateChat chat;
     private String content;
+    @ManyToOne
+    @JoinColumn(name = "course_id")
+    @JsonIgnore
+    private Course course;
 }

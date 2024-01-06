@@ -1,9 +1,6 @@
 package com.Hindol.Classroom.Service;
 
-import com.Hindol.Classroom.Payload.CourseAnnouncementResponseDTO;
-import com.Hindol.Classroom.Payload.CourseAssignmentResponseDTO;
-import com.Hindol.Classroom.Payload.CourseDTO;
-import com.Hindol.Classroom.Payload.CourseResponseDTO;
+import com.Hindol.Classroom.Payload.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -21,4 +18,6 @@ public interface CourseService {
     CourseResponseDTO archieveCourse(Integer courseId,String email,String role);
     List<CourseDTO> getArchievedCourses(String email);
     CourseResponseDTO unarchieveCourse(Integer courseId,String email);
+    CourseResponseDTO addDiscussionMessage(Integer courseId,DiscussionMessageRequestDTO discussionMessageRequestDTO,String email,String role);
+    DiscussionMessageResponseDTO getDiscussionMessage(Integer courseId,String email,String role);
 }

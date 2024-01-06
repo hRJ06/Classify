@@ -1,9 +1,6 @@
 package com.Hindol.Classroom.Controller;
 
-import com.Hindol.Classroom.Payload.CourseAnnouncementResponseDTO;
-import com.Hindol.Classroom.Payload.CourseAssignmentResponseDTO;
-import com.Hindol.Classroom.Payload.CourseDTO;
-import com.Hindol.Classroom.Payload.CourseResponseDTO;
+import com.Hindol.Classroom.Payload.*;
 import com.Hindol.Classroom.Service.CourseService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,6 +152,30 @@ public class CourseController {
         }
         else {
             return new ResponseEntity<List<CourseDTO>>(courseDTOS,HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PostMapping("/add-discussion-message/{courseId}")
+    public ResponseEntity<?> addDiscussionMessage(HttpServletRequest request, @PathVariable Integer courseId, @RequestBody DiscussionMessageRequestDTO discussionMessageRequestDTO) {
+        String email = (String) request.getAttribute("email");
+        String Role = (String) request.getAttribute("Role");
+        CourseResponseDTO courseResponseDTO = this.courseService.addDiscussionMessage(courseId,discussionMessageRequestDTO,email,Role);
+        if(courseResponseDTO.getSuccess()) {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("/get-discussion-message/{courseId}")
+    public ResponseEntity<?> getDiscussionMessage(HttpServletRequest request,@PathVariable Integer courseId) {
+        String email = (String) request.getAttribute("email");
+        String Role =  (String) request.getAttribute("Role");
+        DiscussionMessageResponseDTO discussionMessageResponseDTO = this.courseService.getDiscussionMessage(courseId,email,Role);
+        if(discussionMessageResponseDTO.getSuccess()) {
+            return new ResponseEntity<DiscussionMessageResponseDTO>(discussionMessageResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<DiscussionMessageResponseDTO>(discussionMessageResponseDTO,HttpStatus.BAD_REQUEST);
         }
     }
 }
