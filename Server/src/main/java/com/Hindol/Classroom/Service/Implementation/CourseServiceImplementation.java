@@ -49,11 +49,27 @@ public class CourseServiceImplementation implements CourseService {
         User user = this.userRepository.findByEmail(email);
         if(role.equals("INSTRUCTOR")) {
             List<Course> courses = user.getCreatedCourses();
+            List<Course> archievedCourses = user.getArchievedCourses();
+            Iterator<Course> iterator = courses.iterator();
+            while(iterator.hasNext()) {
+                Course course = iterator.next();
+                if(archievedCourses.contains(course)) {
+                    iterator.remove();
+                }
+            }
             List<CourseDTO> courseDTOS = courses.stream().map(course -> this.modelMapper.map(course,CourseDTO.class)).collect(Collectors.toList());
             return courseDTOS;
         }
         else {
             List<Course> courses = user.getEnrolledCourses();
+            List<Course> archievedCourses = user.getArchievedCourses();
+            Iterator<Course> iterator = courses.iterator();
+            while(iterator.hasNext()) {
+                Course course = iterator.next();
+                if(archievedCourses.contains(course)) {
+                    iterator.remove();
+                }
+            }
             List<CourseDTO> courseDTOS = courses.stream().map(course -> this.modelMapper.map(course,CourseDTO.class)).collect(Collectors.toList());
             return courseDTOS;
         }

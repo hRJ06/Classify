@@ -9,6 +9,7 @@ import Enroll from './Component/Enroll'
 import ForgotPassword from './Component/ForgotPassword'
 import ResetPassword from './Component/ResetPassword'
 import Dashboard from './Component/Dashboard'
+import ArchivedCourse from './Component/ArchivedCourse'
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
       <Route path='/forgot-password' element={<ForgotPassword/>}></Route>
       <Route path='/reset-password/:token' element={<ResetPassword/>}></Route>
       <Route path='/dashboard' element={<Dashboard/>}></Route>
+      <Route path='/archived-courses' element={<ArchivedCourse/>}></Route>
     </Routes>
   )
 }

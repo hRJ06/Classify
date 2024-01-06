@@ -4,7 +4,7 @@ import '../App.css';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const ViewCourse = () => {
+const ArchivedCourse = () => {
   const [courses, setCourses] = useState([]);
   const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
   const [newCourseName, setNewCourseName] = useState('');
@@ -24,7 +24,7 @@ const ViewCourse = () => {
 
     const getAllCourses = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/v1/course/getCourses', {
+        const response = await axios.get('http://localhost:8080/api/v1/course/get-archieved-courses', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -95,9 +95,9 @@ const ViewCourse = () => {
     setShowOptionsMenu(false);
   };
 
-  const handleArchiveCourse = async (courseId) => {
+  const handleUnArchiveCourse = async (courseId) => {
     toast.loading()
-    const response = await axios.put(`http://localhost:8080/api/v1/course/archieve/${courseId}`,null,{
+    const response = await axios.put(`http://localhost:8080/api/v1/course/unarchieve/${courseId}`,null,{
       headers: {
         Authorization: 'Bearer ' + token
       }
@@ -207,6 +207,14 @@ const ViewCourse = () => {
           </div>
         </div>
       )}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2">
+        <button
+          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          onClick={() => navigate('/getCourses')}
+        >
+          VIEW ENROLLED COURSES
+        </button>
+      </div>
       {showOptionsMenu && (
         <div className="fixed inset-0 flex items-center justify-center">
           <div className="bg-black opacity-75 fixed inset-0"></div>
@@ -215,9 +223,9 @@ const ViewCourse = () => {
             <div className="flex flex-col space-y-2 mb-4">
               <button
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                onClick={() => handleArchiveCourse(selectedCourse.id)}
+                onClick={() => handleUnArchiveCourse(selectedCourse.id)}
               >
-                ARCHIEVE
+                UNARCHIEVE
               </button>
               {role === "INSTRUCTOR" && 
                 <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600" onClick={() => handleCopyCourse(selectedCourse.code)}>Code</button>
@@ -243,16 +251,8 @@ const ViewCourse = () => {
           </div>
         </div>
       )}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2">
-        <button
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-          onClick={() => navigate('/archived-courses')}
-        >
-          VIEW UNARCHIVED COURSES
-        </button>
-      </div>
       </div>
   );
 };
 
-export default ViewCourse;
+export default ArchivedCourse;
