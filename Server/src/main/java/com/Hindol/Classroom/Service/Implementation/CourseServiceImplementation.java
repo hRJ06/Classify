@@ -49,17 +49,11 @@ public class CourseServiceImplementation implements CourseService {
         User user = this.userRepository.findByEmail(email);
         if(role.equals("INSTRUCTOR")) {
             List<Course> courses = user.getCreatedCourses();
-            List<Course> archievedCourses = user.getArchievedCourses();
-            /* JAVA STREAM */
-            courses.removeIf(archievedCourses::contains);
             List<CourseDTO> courseDTOS = courses.stream().map(course -> this.modelMapper.map(course,CourseDTO.class)).collect(Collectors.toList());
             return courseDTOS;
         }
         else {
             List<Course> courses = user.getEnrolledCourses();
-            List<Course> archievedCourses = user.getArchievedCourses();
-            /* JAVA STREAM */
-            courses.removeIf(archievedCourses::contains);
             List<CourseDTO> courseDTOS = courses.stream().map(course -> this.modelMapper.map(course,CourseDTO.class)).collect(Collectors.toList());
             return courseDTOS;
         }
@@ -278,10 +272,12 @@ public class CourseServiceImplementation implements CourseService {
                 return new CourseResponseDTO("Course Already Archieved",false);
             }
             user.getArchievedCourses().add(course);
+            course.getArchivedUsers().add(user);
             this.userRepository.save(user);
             return new CourseResponseDTO("Archieved Course",true);
         }
         catch (Exception e) {
+            System.out.println(e);
             return new CourseResponseDTO(e.getMessage(),false);
         }
     }
@@ -306,8 +302,10 @@ public class CourseServiceImplementation implements CourseService {
             User user = this.userRepository.findByEmail(email);
             if(user.getArchievedCourses().contains(course)) {
                 user.getArchievedCourses().remove(course);
+                course.getArchivedUsers().remove(user);
                 this.userRepository.save(user);
-                return new CourseResponseDTO("UnArchieved Course",false);
+                this.courseRepository.save(course);
+                return new CourseResponseDTO("Course UnArchieved Successfully",true);
             }
             else {
                 return new CourseResponseDTO("Course is already UnArchieved",false);

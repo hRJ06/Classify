@@ -1,5 +1,6 @@
 package com.Hindol.Classroom.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -41,4 +42,12 @@ public class Course {
 
     private String courseName;
     private String code;
+    @ManyToMany
+    @JoinTable(
+            name = "course_archived_users",
+            joinColumns = @JoinColumn(name = "course_id"),
+            inverseJoinColumns = @JoinColumn(name = "archived_user_id")
+    )
+    @JsonIgnore
+    private List<User> archivedUsers;
 }

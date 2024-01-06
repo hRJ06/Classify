@@ -138,6 +138,13 @@ public class CourseController {
     @PutMapping("/unarchieve/{courseId}")
     public ResponseEntity<?> unarchieveCourse(@PathVariable Integer courseId,HttpServletRequest request) {
         String email = (String) request.getAttribute("email");
+        CourseResponseDTO courseResponseDTO = this.courseService.unarchieveCourse(courseId,email);
+        if(courseResponseDTO.getSuccess()) {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.BAD_REQUEST);
+        }
     }
     @GetMapping("/get-archieved-courses")
     public ResponseEntity<?> getArchievedCourses(HttpServletRequest request) {

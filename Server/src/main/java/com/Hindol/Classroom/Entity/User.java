@@ -40,7 +40,7 @@ public class User {
     @JsonIgnore
     private List<Course> enrolledCourses;
 
-    @ManyToMany(mappedBy = "enrolledUsers")
+    @ManyToMany(mappedBy = "archivedUsers")
     @JsonIgnore
     private List<Course> archievedCourses;
 
