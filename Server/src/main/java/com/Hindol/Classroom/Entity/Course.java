@@ -53,4 +53,7 @@ public class Course {
     @OneToMany(mappedBy = "course",cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Message> messageList;
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Doubt> doubts;
 }

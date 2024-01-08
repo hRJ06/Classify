@@ -20,4 +20,6 @@ public interface CourseService {
     CourseResponseDTO unarchieveCourse(Integer courseId,String email);
     CourseResponseDTO addDiscussionMessage(Integer courseId,DiscussionMessageRequestDTO discussionMessageRequestDTO,String email,String role);
     DiscussionMessageResponseDTO getDiscussionMessage(Integer courseId,String email,String role);
+    CourseResponseDTO addDoubt(Integer courseId,DoubtRequestDTO doubtRequestDTO,String email,String role);
+    DoubtDTO getDoubt(Integer courseId);
 }

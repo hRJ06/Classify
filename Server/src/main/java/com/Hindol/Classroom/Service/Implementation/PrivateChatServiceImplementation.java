@@ -32,6 +32,7 @@ public class PrivateChatServiceImplementation implements PrivateChatService {
             message.setContent(privateChatMessageRequestDTO.getContent());
             message.setSender(user);
             message.setChat(privateChat);
+            message.setType(privateChatMessageRequestDTO.getType());
             Message savedMessage = this.messageRepository.save(message);
             privateChat.getMessageList().add(message);
             PrivateChat savedPrivateChat = this.privateChatRepository.save(privateChat);

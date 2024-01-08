@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PrivateChatMessageRequestDTO {
+public class DoubtRequestDTO {
     private String content;
-    private String Type;
 }

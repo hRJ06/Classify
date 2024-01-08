@@ -1,13 +1,15 @@
 package com.Hindol.Classroom.Payload;
 
+import com.Hindol.Classroom.Entity.Doubt;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PrivateChatMessageRequestDTO {
-    private String content;
-    private String Type;
+public class DoubtDTO {
+    private List<Doubt> doubtList;
 }

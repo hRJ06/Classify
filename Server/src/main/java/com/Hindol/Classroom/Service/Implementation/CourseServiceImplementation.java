@@ -39,6 +39,8 @@ public class CourseServiceImplementation implements CourseService {
     private Cloudinary cloudinary;
     @Autowired
     private JavaMailSender javaMailSender;
+    @Autowired
+    private DoubtRepository doubtRepository;
     @Value("${spring.mail.username}") private String sender;
     private static String generateUniqueCode() {
         return UUID.randomUUID().toString();
@@ -370,6 +372,43 @@ public class CourseServiceImplementation implements CourseService {
         }
         catch (Exception e) {
             return new DiscussionMessageResponseDTO(e.getMessage(),false,null);
+        }
+    }
+
+    @Override
+    public CourseResponseDTO addDoubt(Integer courseId, DoubtRequestDTO doubtRequestDTO, String email, String role) {
+        try {
+            if(role.equals("STUDENT")) {
+                User user = this.userRepository.findByEmail(email);
+                Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable to find Course With ID " + courseId));
+                Doubt doubt = new Doubt();
+                doubt.setUser(user);
+                doubt.setContent(doubtRequestDTO.getContent());
+                doubt.setCourse(course);
+                Doubt savedDoubt = this.doubtRepository.save(doubt);
+                course.getDoubts().add(savedDoubt);
+                this.courseRepository.save(course);
+                return new CourseResponseDTO("Successfully Added Doubt",true);
+
+            }
+            else {
+                return new CourseResponseDTO("You Need To Be A Student",false);
+            }
+        }
+        catch (Exception e) {
+            return new CourseResponseDTO(e.getMessage(),false);
+        }
+    }
+
+    @Override
+    public DoubtDTO getDoubt(Integer courseId) {
+        try {
+            Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable To Fetch Course With ID " + courseId));
+            List<Doubt> doubtList = course.getDoubts();
+            return new DoubtDTO(doubtList);
+        }
+        catch (Exception e) {
+            return new DoubtDTO(null);
         }
     }
 

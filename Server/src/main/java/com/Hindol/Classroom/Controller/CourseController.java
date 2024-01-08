@@ -178,5 +178,30 @@ public class CourseController {
             return new ResponseEntity<DiscussionMessageResponseDTO>(discussionMessageResponseDTO,HttpStatus.BAD_REQUEST);
         }
     }
+    @PostMapping("/add-doubt/{courseId}")
+    public ResponseEntity<?> addDoubt(HttpServletRequest request, @PathVariable Integer courseId,@RequestBody DoubtRequestDTO doubtRequestDTO) {
+        String email = (String) request.getAttribute("email");
+        String Role = (String) request.getAttribute("Role");
+        CourseResponseDTO courseResponseDTO = this.courseService.addDoubt(courseId,doubtRequestDTO,email,Role);
+        if(courseResponseDTO.getSuccess()) {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.BAD_REQUEST);
+        }
+    }
+    @GetMapping("/get-doubt/{courseId}")
+    public ResponseEntity<?> getDoubt(HttpServletRequest request, @PathVariable Integer courseId) {
+        String email = (String) request.getAttribute("email");
+        String Role = (String) request.getAttribute("Role");
+        DoubtDTO doubtDTO = this.courseService.getDoubt(courseId);
+        if(doubtDTO.getDoubtList() != null) {
+            return new ResponseEntity<DoubtDTO>(doubtDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<DoubtDTO>(doubtDTO,HttpStatus.BAD_REQUEST);
+        }
+
+    }
 }
 
