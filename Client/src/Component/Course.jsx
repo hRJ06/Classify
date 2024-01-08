@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { AiOutlineMessage } from 'react-icons/ai';
 import axios from "axios";
 import toast from "react-hot-toast";
-import data from '@emoji-mart/data'
-import Picker from '@emoji-mart/react'
+import { FaCloudUploadAlt } from 'react-icons/fa';
+
 
 
 const Course = () => {
@@ -17,7 +17,7 @@ const Course = () => {
     fullMarks: "",
     uploadedFiles: []
   });
-  
+  const [cloudinaryWidget, setCloudinaryWidget] = useState(null);
   const [editAssignment, setEditAssignment] = useState(null);
   const [editAssignmentData, setEditAssignmentData] = useState({
     assignmentName: editAssignment ? editAssignment.assignmentName : '',
@@ -67,12 +67,14 @@ const Course = () => {
   const [newMessage, setNewMessage] = useState('');
   const [chatAssignment, setChatAssignment] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isSendingPicture, setIsSendingPicture] = useState(false);
   const usersPerPage = 3;
 
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = enrolledUsers.slice(indexOfFirstUser, indexOfLastUser);
-
+  const cloudinaryRef = useRef();
+  const widgetRef = useRef();
   const handleNextPage = () => {
     setCurrentPage(currentPage + 1);
   };
@@ -92,7 +94,7 @@ const Course = () => {
     }
     if(param !== "discussion") {
       toast.loading()
-      let response = await axios.post(`http://localhost:8080/api/v1/chat/add-message/${privateChat.id}`,{content: newMessage}, {
+      let response = await axios.post(`http://localhost:8080/api/v1/chat/add-message/${privateChat.id}`,{content: newMessage, Type: setIsSendingPicture ? 'PICTURE' : 'TEXT'}, {
         headers: {
           Authorization: 'Bearer ' + token
         }
@@ -106,6 +108,7 @@ const Course = () => {
         ...privateChat,
         messageList: response?.data?.messageList
       });
+      setIsSendingPicture(false)
       toast.dismiss()
     }
     else {
@@ -504,6 +507,19 @@ const Course = () => {
     }
     getDiscussionMessages();
   },[])
+  useEffect(() => {
+    cloudinaryRef.current = window.cloudinary;
+    widgetRef.current = cloudinaryRef.current.createUploadWidget({
+      cloudName:'dvpulu3cc',
+      uploadPreset: 'hkok6apn'
+    },function(err,result) {
+      if(!err && result && result.event === 'success') {
+        setNewMessage(result?.info?.secure_url);
+        setIsSendingPicture(true);
+        handleSendMessage()
+      }
+    })
+  }, []);
 
   return (
     <div className="font-ubuntu flex flex-col">
@@ -1346,9 +1362,9 @@ const Course = () => {
         privateChat && 
         <div className="fixed inset-0 flex items-center justify-center">
           <div className="bg-black opacity-75 fixed inset-0"></div>
-          <div className="bg-white p-8 z-10 w-96">
+          <div className="bg-white p-8 z-10 w-150">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Private Chat</h2>
+              <h2 className="text-2xl font-bold">Chat</h2>
             </div>
             <div className="flex flex-col">
               {privateChat?.messageList.map((message, index) => (
@@ -1367,12 +1383,24 @@ const Course = () => {
                         <span className="text-xs font-light text-gray-500 ml-1">(You)</span>
                       )}
                     </span>
-                    <span>{message.content}</span>
+                    <div className="">
+                      {message.type === 'PICTURE' ? (
+                        <img src={message.content} alt="Message" className="max-w-full h-auto" />
+                      ) : (
+                        <span>{message.content}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex items-center mt-4">
+            <button
+              className="flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 w-10 h-10 focus:outline-none mr-2"
+              onClick={() => widgetRef.current.open()}
+            >
+              <FaCloudUploadAlt /> {/* Replace with your chosen icon */}
+            </button>
               <input
                 type="text"
                 value={newMessage}
