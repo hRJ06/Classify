@@ -3,6 +3,9 @@ import { useParams } from "react-router-dom";
 import { AiOutlineMessage } from 'react-icons/ai';
 import axios from "axios";
 import toast from "react-hot-toast";
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
+
 
 const Course = () => {
   const [showAddAssignmentModal, setShowAddAssignmentModal] = useState(false);
@@ -14,6 +17,7 @@ const Course = () => {
     fullMarks: "",
     uploadedFiles: []
   });
+  
   const [editAssignment, setEditAssignment] = useState(null);
   const [editAssignmentData, setEditAssignmentData] = useState({
     assignmentName: editAssignment ? editAssignment.assignmentName : '',
@@ -41,6 +45,8 @@ const Course = () => {
   const [activeTab, setActiveTab] = useState("assignments");
   const [assignments, setAssignments] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [discussionMessages, setDiscussionMessages] = useState([]);
+
   const token = localStorage.getItem("token");
   const [expandedAssignmentId, setExpandedAssignmentId] = useState(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState(null);
@@ -79,26 +85,44 @@ const Course = () => {
     const baseUrl = 'https://ui-avatars.com/api/?name=';
     return `${baseUrl}${seed}`;
   };
-  const handleSendMessage = async() => {
+  const handleSendMessage = async(param) => {
     if(newMessage.length <= 0) {
       toast.error('Please Enter A Message')
       return;
     }
-    toast.loading()
-    let response = await axios.post(`http://localhost:8080/api/v1/chat/add-message/${privateChat.id}`,{content: newMessage}, {
-      headers: {
-        Authorization: 'Bearer ' + token
-      }
-    })
-    response = await axios.get(`http://localhost:8080/api/v1/chat/get-message/${privateChat.id}`,{
-      headers: {
-        Authorization: 'Bearer ' + token
-      }
-    })
-    setPrivateChat({
-      ...privateChat,
-      messageList: response?.data?.messageList
-    });
+    if(param !== "discussion") {
+      toast.loading()
+      let response = await axios.post(`http://localhost:8080/api/v1/chat/add-message/${privateChat.id}`,{content: newMessage}, {
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+      response = await axios.get(`http://localhost:8080/api/v1/chat/get-message/${privateChat.id}`,{
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+      setPrivateChat({
+        ...privateChat,
+        messageList: response?.data?.messageList
+      });
+      toast.dismiss()
+    }
+    else {
+      toast.loading()
+      let response = await axios.post(`http://localhost:8080/api/v1/course/add-discussion-message/${courseId}`, {content: newMessage}, {
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+      response = await axios.get(`http://localhost:8080/api/v1/course/get-discussion-message/${courseId}`,{
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+      setDiscussionMessages(response?.data?.discussionMessageList);
+      toast.dismiss()
+    }
     setNewMessage('');
     toast.dismiss()
   };
@@ -468,6 +492,18 @@ const Course = () => {
       fullMarks: editAssignment ? editAssignment.fullMarks : '',
     });
   }, [editAssignment]);
+  useEffect(() => {
+    const getDiscussionMessages = async() => {
+      const response = await axios.get(`http://localhost:8080/api/v1/course/get-discussion-message/${courseId}`, {
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+
+      setDiscussionMessages(response?.data?.discussionMessageList);
+    }
+    getDiscussionMessages();
+  },[])
 
   return (
     <div className="font-ubuntu flex flex-col">
@@ -527,6 +563,16 @@ const Course = () => {
               +
             </button>
           }
+          <button
+            className={`px-4 py-2 font-medium ${
+              activeTab === "discussion"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-300 text-gray-700"
+            }`}
+            onClick={() => setActiveTab("discussion")}
+          >
+            DISCUSSION
+          </button>
           <button
             className={`px-4 py-2 font-medium ${
               activeTab === "students"
@@ -693,6 +739,46 @@ const Course = () => {
               ))}
             </div>
           )}
+
+        {
+          activeTab === "discussion" && (
+            <>
+              {discussionMessages.map((message, index) => (
+                <div key={index} className="flex mb-2">
+                  <div className="flex items-center">
+                    <img
+                      src={generateAvatarUrl(`${message.sender.firstName}+${message.sender.lastName}`)}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full"
+                    />
+                  </div>
+                  <div className="flex flex-col ml-2">
+                    <span className="text-sm font-semibold">
+                      {`${message.sender.firstName} ${message.sender.lastName}`}
+                      {/* Add role indication if needed */}
+                    </span>
+                    <span>{message.content}</span>
+                  </div>
+                </div>
+              ))}
+              <div className="flex items-center mt-4">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-grow border rounded-l p-2 w-full"
+                  placeholder="Type A Message..."
+                />
+                <button
+                  className="px-4 py-2 bg-blue-500 text-white rounded-r hover:bg-blue-600 ml-2"
+                  onClick={() => handleSendMessage('discussion')}
+                >
+                  SEND
+                </button>
+              </div>
+            </>
+          )
+        }
 
           {/* Display enrolled users directly in the tab content */}
           {activeTab === "students" && (
@@ -1292,14 +1378,14 @@ const Course = () => {
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 className="flex-grow border rounded-l p-2"
-                placeholder="Type a message..."
+                placeholder="Type A Message..."
               />
               <button
-                className="px-4 py-2 bg-blue-500 text-white rounded-r hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-500 text-white rounded-r hover:bg-blue-600 ml-2"
                 onClick={handleSendMessage}
               >
                 SEND
-              </button>
+              </button> 
             </div>
             <div className="flex items-center justify-center mt-4">
               <button
