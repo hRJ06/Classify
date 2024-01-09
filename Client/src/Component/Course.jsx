@@ -17,6 +17,8 @@ const Course = () => {
     fullMarks: "",
     uploadedFiles: []
   });
+  const [doubtAnswer,setDoubtAnswer] = useState('');
+  const [answersVisible, setAnswersVisible] = useState([]);
   const [cloudinaryWidget, setCloudinaryWidget] = useState(null);
   const [editAssignment, setEditAssignment] = useState(null);
   const [editAssignmentData, setEditAssignmentData] = useState({
@@ -40,13 +42,13 @@ const Course = () => {
   const [newFileAssignmentData, setNewFileAssignmentData] = useState({
     uploadedFiles: []
   })
-
+  
   const { courseId } = useParams();
   const [activeTab, setActiveTab] = useState("assignments");
   const [assignments, setAssignments] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [discussionMessages, setDiscussionMessages] = useState([]);
-
+  const [doubts,setDoubts] = useState([])
   const token = localStorage.getItem("token");
   const [expandedAssignmentId, setExpandedAssignmentId] = useState(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState(null);
@@ -502,9 +504,18 @@ const Course = () => {
           Authorization: 'Bearer ' + token
         }
       })
-
       setDiscussionMessages(response?.data?.discussionMessageList);
     }
+    const getDoubts = async() => {
+      const response = await axios.get(`http://localhost:8080/api/v1/course/get-doubt/${courseId}`, {
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+      console.log(response)
+      setDoubts(response?.data?.doubtList);
+    }
+    getDoubts()
     getDiscussionMessages();
   },[])
   useEffect(() => {
@@ -520,7 +531,34 @@ const Course = () => {
       }
     })
   }, []);
-
+  const toggleAnswersVisibility = (doubtId) => {
+    setAnswersVisible((prevVisibility) => {
+      const newVisibility = [...prevVisibility];
+      const index = newVisibility.indexOf(doubtId);
+      if(index === -1) {
+        newVisibility.push(doubtId);
+      } 
+      else {
+        newVisibility.splice(index, 1);
+      }
+      return newVisibility;
+    });
+  };
+  const handleAddDoubtAnswer = async(doubtId) => {
+    toast.loading()
+    const response = await axios.post(`http://localhost:8080/api/v1/doubt/add-answer/${doubtId}`,{content: doubtAnswer}, {
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    if(response?.data?.success) {
+      window.location.reload()
+    }
+    else {
+      toast.error('Please Try Again')
+    }
+    toast.dismiss()
+  }
   return (
     <div className="font-ubuntu flex flex-col">
       {/* Banner */}
@@ -588,6 +626,16 @@ const Course = () => {
             onClick={() => setActiveTab("discussion")}
           >
             DISCUSSION
+          </button>
+          <button
+            className={`px-4 py-2 font-medium ${
+              activeTab === "doubt  "
+                ? "bg-blue-500 text-white"
+                : "bg-gray-300 text-gray-700"
+            }`}
+            onClick={() => setActiveTab("doubt")}
+          >
+            DOUBT
           </button>
           <button
             className={`px-4 py-2 font-medium ${
@@ -715,6 +763,72 @@ const Course = () => {
               ))}
             </div>
           )}
+
+          {activeTab === "doubt" && doubts.map((doubt,index) => (
+            <div key={doubt.id} className="mb-4">
+              <div className="flex items-center justify-between">
+              <div className="flex items-start">
+                <h3 className="text-xl font-bold mr-2">{index + 1}. </h3>
+                <p className="text-xl font-bold">{doubt.content}</p>
+              </div>
+                <div className="flex gap-2 items-center">
+                  <button
+                    className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                    onClick={() => toggleAnswersVisibility(doubt.id)}
+                  >
+                    {answersVisible.includes(doubt.id) ? 'HIDE' : 'VIEW'}
+                  </button>
+                  <p className="text-gray-700 underline" style={{ fontSize: '0.8em', color: '#888' }}>
+                    {doubt.user.firstName} {doubt.user.lastName}
+                  </p>
+                </div>
+                
+              </div>
+
+              {/* Display "View Answers" button */}
+             
+
+              {/* Display answers if available and visibility is toggled */}
+              {answersVisible.includes(doubt.id) && doubt.answers && doubt.answers.length > 0 && (
+                <div className="mt-2">
+                  {doubt.answers.map((answer, index) => (
+                    <div key={answer.id} className="mb-2">
+                      <div className="flex items-start">
+                        {/* Display index to the side of the answer */}
+                        <p className="mr-2 text-gray-700 font-semibold">{index + 1}.</p>
+                        
+                        {/* Display answer content */}
+                        <div>
+                          <p>{answer.content}</p>
+                          {/* Display the name of the person who answered to the side of the answer */}
+                          <p className="text-gray-700 underline text-right" style={{ fontSize: '0.8em', color: '#888' }}>
+                            {answer.sender.firstName} {answer.sender.lastName}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add your logic for handling answers or adding answers based on the user's role */}    
+              <div className="mt-2 flex items-center">
+                <textarea
+                  className="w-full h-20 border rounded p-2  ml-5"
+                  placeholder="Add Your Answer Here..."
+                  onChange={(e) => setDoubtAnswer(e.target.value)}
+                  
+                />
+                <button
+                  className="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                  onClick={() => handleAddDoubtAnswer(doubt.id)}
+                >
+                  ADD
+                </button>
+              </div>
+              
+            </div>
+          ))}
 
           {activeTab === "announcements" && (
             <div>
