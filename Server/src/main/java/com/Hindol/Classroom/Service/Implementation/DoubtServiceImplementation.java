@@ -1,11 +1,14 @@
 package com.Hindol.Classroom.Service.Implementation;
 
+import com.Hindol.Classroom.Entity.Course;
 import com.Hindol.Classroom.Entity.Doubt;
 import com.Hindol.Classroom.Entity.Message;
 import com.Hindol.Classroom.Entity.User;
 import com.Hindol.Classroom.Payload.CourseResponseDTO;
 import com.Hindol.Classroom.Payload.DoubtAnswerDTO;
+import com.Hindol.Classroom.Payload.DoubtDTO;
 import com.Hindol.Classroom.Payload.DoubtRequestDTO;
+import com.Hindol.Classroom.Repository.CourseRepository;
 import com.Hindol.Classroom.Repository.DoubtRepository;
 import com.Hindol.Classroom.Repository.MessageRepository;
 import com.Hindol.Classroom.Repository.UserRepository;
@@ -28,6 +31,8 @@ public class DoubtServiceImplementation implements DoubtService {
     private MessageRepository messageRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CourseRepository courseRepository;
     @Override
     public CourseResponseDTO addAnswerToDoubt(Integer doubtId, DoubtRequestDTO doubtRequestDTO, String email) {
         try {
@@ -91,6 +96,18 @@ public class DoubtServiceImplementation implements DoubtService {
         }
         catch (Exception e) {
             return null;
+        }
+    }
+
+    @Override
+    public DoubtDTO searchDoubts(Integer courseId, String keyword) {
+        try {
+            Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable To Fetch Course With ID  " + courseId));
+            List<Doubt> searchedDoubts = this.doubtRepository.findByContentContainingAndCourseEquals(keyword,course);
+            return new DoubtDTO(searchedDoubts);
+        }
+        catch (Exception e) {
+            return new DoubtDTO(null);
         }
     }
 }

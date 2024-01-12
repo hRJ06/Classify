@@ -248,7 +248,7 @@ const ViewCourse = () => {
           className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
           onClick={() => navigate('/archived-courses')}
         >
-          VIEW UNARCHIVED COURSES
+          VIEW ARCHIEVED COURSES
         </button>
       </div>
       </div>

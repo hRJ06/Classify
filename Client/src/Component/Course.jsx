@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AiOutlineMessage } from 'react-icons/ai';
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -17,7 +17,7 @@ const Course = () => {
     fullMarks: "",
     uploadedFiles: []
   });
-  const [doubtAnswer,setDoubtAnswer] = useState('');
+  const [doubtAnswers, setDoubtAnswers] = useState([]);
   const [answersVisible, setAnswersVisible] = useState([]);
   const [cloudinaryWidget, setCloudinaryWidget] = useState(null);
   const [editAssignment, setEditAssignment] = useState(null);
@@ -70,6 +70,7 @@ const Course = () => {
   const [chatAssignment, setChatAssignment] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isSendingPicture, setIsSendingPicture] = useState(false);
+  const navigate = useNavigate()
   const usersPerPage = 3;
 
   const indexOfLastUser = currentPage * usersPerPage;
@@ -544,21 +545,42 @@ const Course = () => {
       return newVisibility;
     });
   };
-  const handleAddDoubtAnswer = async(doubtId) => {
+  const handleAddDoubtAnswer = async(doubtId,index) => {
+    if(doubtAnswers[index]&&  doubtAnswers[index].trim().length > 0) {
+      toast.loading()
+      const response = await axios.post(`http://localhost:8080/api/v1/doubt/add-answer/${doubtId}`,{content: doubtAnswers[index]}, {
+        headers: {
+          Authorization: 'Bearer ' + token
+        }
+      })
+      if(response?.data?.success) {
+        window.location.reload()
+      }
+      else {
+        toast.error('Please Try Again')
+      }
+      toast.dismiss()
+    }
+    else {
+      toast.error("Answer Can't Be Empty");
+    }
+    
+  }
+  const handleGenerate = async(doubtId) => {
     toast.loading()
-    const response = await axios.post(`http://localhost:8080/api/v1/doubt/add-answer/${doubtId}`,{content: doubtAnswer}, {
+    const response = await axios.get(`http://localhost:8080/api/v1/doubt/generate-answer/${doubtId}`,{
       headers: {
         Authorization: 'Bearer ' + token
       }
     })
-    if(response?.data?.success) {
-      window.location.reload()
+    if(!response?.data?.answer) {
+      toast.dismiss()
+      toast.error('Please Try Again!')
     }
-    else {
-      toast.error('Please Try Again')
-    }
+    navigator.clipboard.writeText(response?.data?.answer)
     toast.dismiss()
-  }
+    toast.success("Answer Copied To Clipboard")
+  } 
   return (
     <div className="font-ubuntu flex flex-col">
       {/* Banner */}
@@ -629,7 +651,7 @@ const Course = () => {
           </button>
           <button
             className={`px-4 py-2 font-medium ${
-              activeTab === "doubt  "
+              activeTab === "doubt"
                 ? "bg-blue-500 text-white"
                 : "bg-gray-300 text-gray-700"
             }`}
@@ -814,18 +836,29 @@ const Course = () => {
               {/* Add your logic for handling answers or adding answers based on the user's role */}    
               <div className="mt-2 flex items-center">
                 <textarea
-                  className="w-full h-20 border rounded p-2  ml-5"
+                  className="w-full h-20 border rounded p-2 ml-5"
                   placeholder="Add Your Answer Here..."
-                  onChange={(e) => setDoubtAnswer(e.target.value)}
-                  
+                  value={doubtAnswers[index] || ''}
+                  onChange={(e) => {
+                    const updatedDoubtAnswers = [...doubtAnswers];
+                    updatedDoubtAnswers[index] = e.target.value; // Update the specific doubt's answer
+                    setDoubtAnswers(updatedDoubtAnswers);
+                  }}
                 />
                 <button
                   className="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                  onClick={() => handleAddDoubtAnswer(doubt.id)}
+                  onClick={() => handleAddDoubtAnswer(doubt.id,index)}
                 >
                   ADD
                 </button>
+                <button
+                  className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  onClick={() => handleGenerate(doubt.id)}
+                >
+                  GENERATE
+                </button>
               </div>
+
               
             </div>
           ))}

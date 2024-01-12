@@ -2,6 +2,7 @@ package com.Hindol.Classroom.Controller;
 
 import com.Hindol.Classroom.Payload.CourseResponseDTO;
 import com.Hindol.Classroom.Payload.DoubtAnswerDTO;
+import com.Hindol.Classroom.Payload.DoubtDTO;
 import com.Hindol.Classroom.Payload.DoubtRequestDTO;
 import com.Hindol.Classroom.Service.DoubtService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,6 +50,17 @@ public class DoubtController {
         }
         else {
             return ResponseEntity.badRequest().body("Internal Server Error");
+        }
+    }
+    @GetMapping("/get-doubt/{courseId}")
+    public ResponseEntity<?> getDoubt(@RequestParam(name = "search", required = false) String keyword,@PathVariable Integer courseId,HttpServletRequest request) {
+        String email = (String) request.getAttribute("email");
+        DoubtDTO doubtDTO = this.doubtService.searchDoubts(courseId,keyword);
+        if(doubtDTO.getDoubtList() != null) {
+            return new ResponseEntity<DoubtDTO>(doubtDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<DoubtDTO>(doubtDTO,HttpStatus.BAD_REQUEST);
         }
     }
 }

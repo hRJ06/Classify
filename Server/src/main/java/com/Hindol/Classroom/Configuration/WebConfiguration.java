@@ -21,5 +21,6 @@ public class WebConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(authenticationInterceptor()).addPathPatterns("/api/v1/file/**");
         registry.addInterceptor(authenticationInterceptor()).addPathPatterns("/api/v1/chat/**");
         registry.addInterceptor(authenticationInterceptor()).addPathPatterns("/api/v1/doubt/**");
+        registry.addInterceptor(authenticationInterceptor()).addPathPatterns("/api/v1/message/**");
     }
 }
