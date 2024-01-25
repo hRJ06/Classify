@@ -201,7 +201,29 @@ public class CourseController {
         else {
             return new ResponseEntity<DoubtDTO>(doubtDTO,HttpStatus.BAD_REQUEST);
         }
-
+    }
+    @PutMapping("/add-Link/{courseId}")
+    public ResponseEntity<?> addMeetLink(HttpServletRequest request,@RequestBody MeetDTO meetDTO,@PathVariable Integer courseId) {
+        String email = (String) request.getAttribute("email");
+        String Role = (String) request.getAttribute("Role");
+        CourseResponseDTO courseResponseDTO = this.courseService.addMeetLink(email,Role,courseId,meetDTO.getMeetingLink());
+        if(courseResponseDTO.getSuccess()) {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.BAD_REQUEST);
+        }
+    }
+    @PutMapping("/update-cover-photo/{courseId}")
+    public ResponseEntity<?> addCoverPhoto(HttpServletRequest request,@PathVariable Integer courseId,@RequestParam(value = "file") MultipartFile file) {
+        String role = (String) request.getAttribute("Role");
+        CourseResponseDTO courseResponseDTO = this.courseService.uploadCoverPhoto(role,courseId,file);
+        if(courseResponseDTO.getSuccess()) {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<CourseResponseDTO>(courseResponseDTO,HttpStatus.BAD_REQUEST);
+        }
     }
 }
 

@@ -10,4 +10,5 @@ public interface DoubtService {
     DoubtAnswerDTO getAnswer(String email,Integer doubtId);
     String generateAnswer(String email,Integer doubtId);
     DoubtDTO searchDoubts(Integer courseId, String keyword);
+    DoubtDTO getMyDoubts(String email);
 }

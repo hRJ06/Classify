@@ -22,4 +22,6 @@ public interface CourseService {
     DiscussionMessageResponseDTO getDiscussionMessage(Integer courseId,String email,String role);
     CourseResponseDTO addDoubt(Integer courseId,DoubtRequestDTO doubtRequestDTO,String email,String role);
     DoubtDTO getDoubt(Integer courseId);
+    CourseResponseDTO addMeetLink(String email,String role,Integer courseId, String meetLink);
+    CourseResponseDTO uploadCoverPhoto(String role,Integer courseId,MultipartFile file);
 }

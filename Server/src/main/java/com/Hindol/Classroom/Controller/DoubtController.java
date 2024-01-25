@@ -63,4 +63,15 @@ public class DoubtController {
             return new ResponseEntity<DoubtDTO>(doubtDTO,HttpStatus.BAD_REQUEST);
         }
     }
+    @GetMapping("/doubts")
+    public ResponseEntity<?> getMyDoubts(HttpServletRequest request) {
+        String email = (String) request.getAttribute("email");
+        DoubtDTO doubtDTO = this.doubtService.getMyDoubts(email);
+        if(doubtDTO.getDoubtList() != null) {
+            return new ResponseEntity<DoubtDTO>(doubtDTO,HttpStatus.OK);
+        }
+        else {
+            return new ResponseEntity<DoubtDTO>(doubtDTO,HttpStatus.BAD_REQUEST);
+        }
+    }
 }

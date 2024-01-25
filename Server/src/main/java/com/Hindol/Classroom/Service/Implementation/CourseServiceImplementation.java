@@ -401,6 +401,46 @@ public class CourseServiceImplementation implements CourseService {
     }
 
     @Override
+    public CourseResponseDTO addMeetLink(String email,String role,Integer courseId, String meetLink) {
+        try {
+            if(role.equals("INSTRUCTOR")) {
+                Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable to fetch Course With ID " + courseId));
+                course.setMeetingLink(meetLink);
+                this.courseRepository.save(course);
+                return new CourseResponseDTO("Successfully added Meeting Link",true);
+            }
+            else {
+                return new CourseResponseDTO("You must be an INSTRUCTOR",false);
+            }
+
+        }
+        catch (Exception e) {
+            return new CourseResponseDTO(e.getMessage(),false);
+        }
+    }
+
+    @Override
+    public CourseResponseDTO uploadCoverPhoto(String role, Integer courseId, MultipartFile file) {
+        try {
+            if(role.equals("INSTRUCTOR")) {
+                Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable to Fetch Course With ID " + courseId));
+                String fileName = file.getOriginalFilename();
+                Map data = this.cloudinary.uploader().upload(file.getBytes(),Map.of());
+                String uploadedLink = (String) data.get("secure_url");
+                course.setCoverPhoto(uploadedLink);
+                this.courseRepository.save(course);
+                return new CourseResponseDTO("Successfully Added Cover Photo",true);
+            }
+            else {
+                return new CourseResponseDTO("You must be an INSTRUCTOR",false);
+            }
+        }
+        catch (Exception e) {
+            return new CourseResponseDTO(e.getMessage(),false);
+        }
+    }
+
+    @Override
     public DoubtDTO getDoubt(Integer courseId) {
         try {
             Course course = this.courseRepository.findById(courseId).orElseThrow(() -> new RuntimeException("Unable To Fetch Course With ID " + courseId));

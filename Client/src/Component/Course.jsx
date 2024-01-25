@@ -91,7 +91,9 @@ const Course = () => {
     return `${baseUrl}${seed}`;
   };
   const handleSendMessage = async(param) => {
-    if(newMessage.length <= 0) {
+    console.log(isSendingPicture)
+    console.log('NEW',newMessage)
+    if(newMessage.length <= 0 && !isSendingPicture) {
       toast.error('Please Enter A Message')
       return;
     }
@@ -520,17 +522,21 @@ const Course = () => {
     getDiscussionMessages();
   },[])
   useEffect(() => {
-    cloudinaryRef.current = window.cloudinary;
-    widgetRef.current = cloudinaryRef.current.createUploadWidget({
-      cloudName:'dvpulu3cc',
-      uploadPreset: 'hkok6apn'
-    },function(err,result) {
-      if(!err && result && result.event === 'success') {
-        setNewMessage(result?.info?.secure_url);
-        setIsSendingPicture(true);
-        handleSendMessage()
-      }
-    })
+    const fn = async() => {
+      cloudinaryRef.current = window.cloudinary;
+      widgetRef.current = cloudinaryRef.current.createUploadWidget({
+        cloudName:'dvpulu3cc',
+        uploadPreset: 'hkok6apn'
+      },function(err,result) {
+        if(!err && result && result.event === 'success') {
+          console.log(result?.info?.secure_url)
+          setNewMessage(result?.info?.secure_url);
+          setIsSendingPicture(true);
+          handleSendMessage()
+        }
+      })
+    }
+    fn()
   }, []);
   const toggleAnswersVisibility = (doubtId) => {
     setAnswersVisible((prevVisibility) => {

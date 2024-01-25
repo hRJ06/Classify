@@ -110,4 +110,16 @@ public class DoubtServiceImplementation implements DoubtService {
             return new DoubtDTO(null);
         }
     }
+
+    @Override
+    public DoubtDTO getMyDoubts(String email) {
+        try {
+            User user = this.userRepository.findByEmail(email);
+            List<Doubt> doubtList = this.doubtRepository.findByUserEquals(user);
+            return new DoubtDTO(doubtList);
+        }
+        catch (Exception e) {
+            return new DoubtDTO(null);
+        }
+    }
 }

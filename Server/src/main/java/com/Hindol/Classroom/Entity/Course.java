@@ -56,4 +56,6 @@ public class Course {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Doubt> doubts;
+    private String meetingLink;
+    private String coverPhoto;
 }
