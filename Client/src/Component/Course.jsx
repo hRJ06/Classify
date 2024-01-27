@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { redirect, useNavigate, useParams } from "react-router-dom";
 import { AiOutlineMessage } from 'react-icons/ai';
 import axios from "axios";
 import toast from "react-hot-toast";
 import { FaCloudUploadAlt } from 'react-icons/fa';
-
-
+import { FaVideo } from "react-icons/fa6";
+import { IoIosAddCircle } from "react-icons/io";
 
 const Course = () => {
   const [showAddAssignmentModal, setShowAddAssignmentModal] = useState(false);
@@ -33,7 +33,7 @@ const Course = () => {
   const [newAnnouncementData, setNewAnnouncementData] = useState({
     name: "",
     content: "",
-    uploadedFiles: [] 
+    uploadedFiles: []
   })
   const [newSubmissionData, setNewSubmissionData] = useState({
     uploadedFiles: []
@@ -42,19 +42,19 @@ const Course = () => {
   const [newFileAssignmentData, setNewFileAssignmentData] = useState({
     uploadedFiles: []
   })
-  
+
   const { courseId } = useParams();
   const [activeTab, setActiveTab] = useState("assignments");
   const [assignments, setAssignments] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [discussionMessages, setDiscussionMessages] = useState([]);
-  const [doubts,setDoubts] = useState([])
+  const [doubts, setDoubts] = useState([])
   const token = localStorage.getItem("token");
   const [expandedAssignmentId, setExpandedAssignmentId] = useState(null);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState(null);
   const [editingSubmissionId, setEditingSubmissionId] = useState(null);
   const [newMarks, setNewMarks] = useState("");
-  const [course,setCourse] = useState('');
+  const [course, setCourse] = useState('');
   const [enrolledUsers, setEnrolledUsers] = useState([])
   const [showDeleteFileModal, setShowDeleteFileModal] = useState(false);
   const [fileToDelete, setFileToDelete] = useState(null);
@@ -65,11 +65,13 @@ const Course = () => {
   const [addFileAssignmentModal, setAddFileAssignmentModal] = useState(false);
   const [addFileAssignment, setAddFileAssignment] = useState(null);
   const [editCommentSubmissionId, setEditCommentSubmissionId] = useState(null);
-  const [privateChat,setPrivateChat] = useState(null);
+  const [privateChat, setPrivateChat] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [chatAssignment, setChatAssignment] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isSendingPicture, setIsSendingPicture] = useState(false);
+  const [meetingLinkModal, setMeetingLinkModal] = useState(false);
+  const [meetingLink, setMeetingLink] = useState(null);
   const navigate = useNavigate()
   const usersPerPage = 3;
 
@@ -78,6 +80,23 @@ const Course = () => {
   const currentUsers = enrolledUsers.slice(indexOfFirstUser, indexOfLastUser);
   const cloudinaryRef = useRef();
   const widgetRef = useRef();
+  const handleAddMeetingLink = async () => {
+    const link = `http://localhost:8080/api/v1/course/add-Link/${course?.id}`
+    const response = await axios.put(`http://localhost:8080/api/v1/course/add-Link/${course?.id}`, { meetingLink: meetingLink }, {
+      headers: {
+        Authorization: 'Bearer ' + token
+      }
+    })
+    if(response) {
+      toast.success('Successfully Added Meeting Link')
+      const reload = setTimeout(() => {
+        window.location.reload();
+      }, 4000);
+    }
+    else {
+      toast.error('Error Adding Link');
+    }
+  }
   const handleNextPage = () => {
     setCurrentPage(currentPage + 1);
   };
@@ -90,21 +109,22 @@ const Course = () => {
     const baseUrl = 'https://ui-avatars.com/api/?name=';
     return `${baseUrl}${seed}`;
   };
-  const handleSendMessage = async(param) => {
+  const handleSendMessage = async (param) => {
     console.log(isSendingPicture)
-    console.log('NEW',newMessage)
-    if(newMessage.length <= 0 && !isSendingPicture) {
+    console.log('NEW', newMessage)
+    if (newMessage.length <= 0 && !isSendingPicture) {
+      setNewMessage('')
       toast.error('Please Enter A Message')
       return;
     }
-    if(param !== "discussion") {
+    if (param !== "discussion") {
       toast.loading()
-      let response = await axios.post(`http://localhost:8080/api/v1/chat/add-message/${privateChat.id}`,{content: newMessage, Type: setIsSendingPicture ? 'PICTURE' : 'TEXT'}, {
+      let response = await axios.post(`http://localhost:8080/api/v1/chat/add-message/${privateChat.id}`, { content: newMessage, type: isSendingPicture ? 'PICTURE' : 'TEXT' }, {
         headers: {
           Authorization: 'Bearer ' + token
         }
       })
-      response = await axios.get(`http://localhost:8080/api/v1/chat/get-message/${privateChat.id}`,{
+      response = await axios.get(`http://localhost:8080/api/v1/chat/get-message/${privateChat.id}`, {
         headers: {
           Authorization: 'Bearer ' + token
         }
@@ -118,12 +138,12 @@ const Course = () => {
     }
     else {
       toast.loading()
-      let response = await axios.post(`http://localhost:8080/api/v1/course/add-discussion-message/${courseId}`, {content: newMessage}, {
+      let response = await axios.post(`http://localhost:8080/api/v1/course/add-discussion-message/${courseId}`, { content: newMessage }, {
         headers: {
           Authorization: 'Bearer ' + token
         }
       })
-      response = await axios.get(`http://localhost:8080/api/v1/course/get-discussion-message/${courseId}`,{
+      response = await axios.get(`http://localhost:8080/api/v1/course/get-discussion-message/${courseId}`, {
         headers: {
           Authorization: 'Bearer ' + token
         }
@@ -134,26 +154,26 @@ const Course = () => {
     setNewMessage('');
     toast.dismiss()
   };
-  const handleEditAssignment = async() => {
-    const response = await axios.put(`http://localhost:8080/api/v1/assignment/editAssignment/${editAssignment.id}`,editAssignmentData,{
+  const handleEditAssignment = async () => {
+    const response = await axios.put(`http://localhost:8080/api/v1/assignment/editAssignment/${editAssignment.id}`, editAssignmentData, {
       headers: {
         Authorization: 'Bearer ' + token
       }
     })
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       toast.success(response?.data?.message)
     }
     else {
       toast.error(response?.data?.message)
     }
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       const reload = setTimeout(() => {
         window.location.reload()
-      },3000)
+      }, 3000)
     }
   }
-  const handleChat = async(param) => {
-    if(role === "STUDENT") {
+  const handleChat = async (param) => {
+    if (role === "STUDENT") {
       toast.loading()
       const response = await axios.post(`http://localhost:8080/api/v1/assignment/create-chat/${param.id}`, null, {
         headers: {
@@ -167,7 +187,7 @@ const Course = () => {
     else {
       toast.loading();
       const formData = new FormData()
-      formData.append('StudentId',param);
+      formData.append('StudentId', param);
       const response = await axios.post(`http://localhost:8080/api/v1/assignment/create-chat/${chatAssignment}`, formData, {
         headers: {
           Authorization: 'Bearer ' + token
@@ -178,24 +198,24 @@ const Course = () => {
       setPrivateChat(response?.data);
     }
   }
-  const handleAddFileAssignment = async() => {
-    if(newFileAssignmentData.uploadedFiles.length <= 0) {
+  const handleAddFileAssignment = async () => {
+    if (newFileAssignmentData.uploadedFiles.length <= 0) {
       toast.error("Please Attach A File")
       return;
     }
     const filesArray = Array.from(newFileAssignmentData.uploadedFiles)
     const formData = new FormData();
-    for(let i = 0; i < filesArray.length; i++) {
+    for (let i = 0; i < filesArray.length; i++) {
       formData.append('files', filesArray[i]);
     }
     toast.loading("Adding File(s)")
-    const response = await axios.put(`http://localhost:8080/api/v1/file/add/assignment/${addFileAssignment}`,formData, {
+    const response = await axios.put(`http://localhost:8080/api/v1/file/add/assignment/${addFileAssignment}`, formData, {
       headers: {
         Authorization: 'Bearer ' + token
       }
     })
     toast.dismiss()
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       toast.success(response?.data?.result)
     }
     else {
@@ -206,40 +226,40 @@ const Course = () => {
       uploadedFiles: []
     })
     setAddFileAssignment(null);
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       const result = setTimeout(() => {
         window.location.reload()
-      },3000)
+      }, 3000)
     }
   }
 
   const handleAddSubmissionModal = (assignment) => {
     const hasSubmission = assignment.submissions.length > 0;
     setAddSubmissionAssignment(assignment.id)
-    if(hasSubmission) {
+    if (hasSubmission) {
       toast.error("Please Remove Your Current Submission");
       return;
     }
     setAddSubmissionModal(true);
   }
-  const handleAddSubmission = async() => {
-    if(newSubmissionData.uploadedFiles.length <= 0) {
+  const handleAddSubmission = async () => {
+    if (newSubmissionData.uploadedFiles.length <= 0) {
       toast.error("Please Attach A File");
       return;
     }
     const formData = new FormData();
     const filesArray = Array.from(newSubmissionData.uploadedFiles);
-    for(let i = 0; i<filesArray.length; i++) {
-      formData.append('files',filesArray[i]);
+    for (let i = 0; i < filesArray.length; i++) {
+      formData.append('files', filesArray[i]);
     }
     toast.loading('Adding Your Submission');
-    const response = await axios.post(`http://localhost:8080/api/v1/assignment/submitSubmission/${addSubmissionAssignment}`,formData,{
+    const response = await axios.post(`http://localhost:8080/api/v1/assignment/submitSubmission/${addSubmissionAssignment}`, formData, {
       headers: {
         Authorization: 'Bearer ' + token
       }
     })
     toast.dismiss()
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       toast.success(response?.data?.message);
     }
     else {
@@ -250,10 +270,10 @@ const Course = () => {
       uploadedFiles: []
     })
     setAddSubmissionModal(false);
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       const reload = setTimeout(() => {
         window.location.reload();
-      },4000)
+      }, 4000)
     }
   }
   const handleRemoveSubmission = () => {
@@ -262,16 +282,16 @@ const Course = () => {
   const handleCancelRemoveSubmission = () => {
     setRemoveSubmissionModal(false);
   }
-  const handleDeleteSubmission = async() => {
+  const handleDeleteSubmission = async () => {
     toast.loading('Removing Submission')
-    const response = await axios.put(`http://localhost:8080/api/v1/assignment/removeSubmission/${selectedAssignmentId}`,{},{
+    const response = await axios.put(`http://localhost:8080/api/v1/assignment/removeSubmission/${selectedAssignmentId}`, {}, {
       headers: {
         Authorization: 'Bearer ' + token
       }
     })
     toast.dismiss()
     setRemoveSubmissionModal(false);
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       toast.success(response?.data?.message)
     }
     else {
@@ -279,7 +299,7 @@ const Course = () => {
     }
     const reload = setTimeout(() => {
       window.location.reload()
-    },4000)
+    }, 4000)
   }
   const handleOpenAddAnnouncementModal = () => {
     setShowAnnouncementModal(true);
@@ -293,7 +313,7 @@ const Course = () => {
     setNewAnnouncementData({
       name: "",
       content: "",
-      uploadedFiles: [] 
+      uploadedFiles: []
     })
   }
   const handleCloseAddAssignmentModal = () => {
@@ -325,17 +345,17 @@ const Course = () => {
     return firstInitial + lastInitial;
   };
   const handleEditComment = async () => {
-    if(editCommentData.comment === editCommentSubmissionId.comment) {
+    if (editCommentData.comment === editCommentSubmissionId.comment) {
       toast.error('Please Edit')
       return;
     }
-    console.log(typeof(editCommentData));
-    const response = await axios.put(`http://localhost:8080/api/v1/submission/addComment/${editCommentSubmissionId.id}`,editCommentData,{
+    console.log(typeof (editCommentData));
+    const response = await axios.put(`http://localhost:8080/api/v1/submission/addComment/${editCommentSubmissionId.id}`, editCommentData, {
       headers: {
         Authorization: 'Bearer ' + token
       }
     })
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       toast.success('Comment Added Successfully');
       setEditCommentSubmissionId(null);
     }
@@ -370,44 +390,44 @@ const Course = () => {
   };
   const handleCreateAssignment = async () => {
     const formData = new FormData();
-    formData.append('name',newAssignmentData.assignmentName)
-    formData.append('description',newAssignmentData.description);
-    formData.append('deadline',newAssignmentData.deadline);
-    formData.append('fullMarks',newAssignmentData.fullMarks);
+    formData.append('name', newAssignmentData.assignmentName)
+    formData.append('description', newAssignmentData.description);
+    formData.append('deadline', newAssignmentData.deadline);
+    formData.append('fullMarks', newAssignmentData.fullMarks);
     const filesArray = Array.from(newAssignmentData.uploadedFiles);
-    for(let i = 0; i < filesArray.length; i++) {
+    for (let i = 0; i < filesArray.length; i++) {
       formData.append('files', filesArray[i]);
     }
-    toast.loading("Creating Assignment", {autoClose:true});
+    toast.loading("Creating Assignment", { autoClose: true });
     const response = await axios.post(
-        `http://localhost:8080/api/v1/course/createAssignment/${courseId}`,
-        formData,
-        {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                Authorization: 'Bearer ' + token
-            },
-        }
+      `http://localhost:8080/api/v1/course/createAssignment/${courseId}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: 'Bearer ' + token
+        },
+      }
     );
     toast.dismiss()
-    if(response?.data?.success) {
-        toast.success(response?.data?.result);
+    if (response?.data?.success) {
+      toast.success(response?.data?.result);
     }
     else {
-        toast.error(response?.data?.result);
+      toast.error(response?.data?.result);
     }
     console.log(response)
   };
 
-  const handleCreateAnnouncement = async() => {
+  const handleCreateAnnouncement = async () => {
     const formData = new FormData();
-    formData.append('name',newAnnouncementData.name);
-    formData.append('content',newAnnouncementData.content);
+    formData.append('name', newAnnouncementData.name);
+    formData.append('content', newAnnouncementData.content);
     const filesArray = Array.from(newAnnouncementData.uploadedFiles);
-    for(let i = 0; i < filesArray.length; i++) {
-      formData.append('files',filesArray[i]);
+    for (let i = 0; i < filesArray.length; i++) {
+      formData.append('files', filesArray[i]);
     }
-    toast.loading("Creating Announcement", {autoClose: true});
+    toast.loading("Creating Announcement", { autoClose: true });
     const response = await axios.post(
       `http://localhost:8080/api/v1/course/createAnnouncement/${courseId}`,
       formData,
@@ -419,29 +439,29 @@ const Course = () => {
       }
     )
     toast.dismiss()
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       toast.success(response?.data?.result);
     }
     else {
-        toast.error(response?.data?.result);
+      toast.error(response?.data?.result);
     }
   }
-  const handleDeleteFile = async(fileId) => {
+  const handleDeleteFile = async (fileId) => {
     setFileToDelete(fileId);
     setShowDeleteFileModal(true);
   }
-  const handleConfirmDeleteFile = async() => {
+  const handleConfirmDeleteFile = async () => {
     const response = await axios.delete(`http://localhost:8080/api/v1/file/remove/${fileToDelete}`, {
       headers: {
         Authorization: 'Bearer ' + token
       }
     })
     console.log(response)
-    if(response?.data?.success) {
+    if (response?.data?.success) {
       toast.success(response?.data?.result);
       const reload = setTimeout(() => {
         window.location.reload()
-      },4000)
+      }, 4000)
     }
     else {
       toast.error(response?.data?.result);
@@ -479,14 +499,15 @@ const Course = () => {
       setAnnouncements(response?.data?.announcements);
     };
 
-    const getCourseDetails = async() => {
+    const getCourseDetails = async () => {
       const response = await axios.get(`http://localhost:8080/api/v1/course/${courseId}`, {
         headers: {
           Authorization: "Bearer " + token,
         }
       })
       setEnrolledUsers(response?.data?.enrolledUsers)
-      setCourse(response?.data?.courseName)
+      setCourse(response?.data)
+      console.log('COURSE', response?.data)
     }
     getCourseDetails();
     getAssignments();
@@ -501,7 +522,7 @@ const Course = () => {
     });
   }, [editAssignment]);
   useEffect(() => {
-    const getDiscussionMessages = async() => {
+    const getDiscussionMessages = async () => {
       const response = await axios.get(`http://localhost:8080/api/v1/course/get-discussion-message/${courseId}`, {
         headers: {
           Authorization: 'Bearer ' + token
@@ -509,7 +530,7 @@ const Course = () => {
       })
       setDiscussionMessages(response?.data?.discussionMessageList);
     }
-    const getDoubts = async() => {
+    const getDoubts = async () => {
       const response = await axios.get(`http://localhost:8080/api/v1/course/get-doubt/${courseId}`, {
         headers: {
           Authorization: 'Bearer ' + token
@@ -520,46 +541,50 @@ const Course = () => {
     }
     getDoubts()
     getDiscussionMessages();
-  },[])
+  }, [])
   useEffect(() => {
-    const fn = async() => {
+    const fn = async () => {
       cloudinaryRef.current = window.cloudinary;
       widgetRef.current = cloudinaryRef.current.createUploadWidget({
-        cloudName:'dvpulu3cc',
+        cloudName: 'dvpulu3cc',
         uploadPreset: 'hkok6apn'
-      },function(err,result) {
-        if(!err && result && result.event === 'success') {
+      }, async function (err, result) {
+        if (!err && result && result.event === 'success') {
           console.log(result?.info?.secure_url)
           setNewMessage(result?.info?.secure_url);
           setIsSendingPicture(true);
-          handleSendMessage()
         }
       })
     }
     fn()
   }, []);
+  useEffect(() => {
+    if (isSendingPicture) {
+      handleSendMessage();
+    }
+  }, [isSendingPicture]);
   const toggleAnswersVisibility = (doubtId) => {
     setAnswersVisible((prevVisibility) => {
       const newVisibility = [...prevVisibility];
       const index = newVisibility.indexOf(doubtId);
-      if(index === -1) {
+      if (index === -1) {
         newVisibility.push(doubtId);
-      } 
+      }
       else {
         newVisibility.splice(index, 1);
       }
       return newVisibility;
     });
   };
-  const handleAddDoubtAnswer = async(doubtId,index) => {
-    if(doubtAnswers[index]&&  doubtAnswers[index].trim().length > 0) {
+  const handleAddDoubtAnswer = async (doubtId, index) => {
+    if (doubtAnswers[index] && doubtAnswers[index].trim().length > 0) {
       toast.loading()
-      const response = await axios.post(`http://localhost:8080/api/v1/doubt/add-answer/${doubtId}`,{content: doubtAnswers[index]}, {
+      const response = await axios.post(`http://localhost:8080/api/v1/doubt/add-answer/${doubtId}`, { content: doubtAnswers[index] }, {
         headers: {
           Authorization: 'Bearer ' + token
         }
       })
-      if(response?.data?.success) {
+      if (response?.data?.success) {
         window.location.reload()
       }
       else {
@@ -570,23 +595,23 @@ const Course = () => {
     else {
       toast.error("Answer Can't Be Empty");
     }
-    
+
   }
-  const handleGenerate = async(doubtId) => {
+  const handleGenerate = async (doubtId) => {
     toast.loading()
-    const response = await axios.get(`http://localhost:8080/api/v1/doubt/generate-answer/${doubtId}`,{
+    const response = await axios.get(`http://localhost:8080/api/v1/doubt/generate-answer/${doubtId}`, {
       headers: {
         Authorization: 'Bearer ' + token
       }
     })
-    if(!response?.data?.answer) {
+    if (!response?.data?.answer) {
       toast.dismiss()
       toast.error('Please Try Again!')
     }
     navigator.clipboard.writeText(response?.data?.answer)
     toast.dismiss()
     toast.success("Answer Copied To Clipboard")
-  } 
+  }
   return (
     <div className="font-ubuntu flex flex-col">
       {/* Banner */}
@@ -597,8 +622,14 @@ const Course = () => {
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black"></div>
-        <div className="absolute inset-x-0 bottom-0 p-4 text-white">
-          <h2 className="text-2xl font-bold opacity-75">{course}</h2>
+        <div className="absolute inset-x-0 bottom-0 p-4 text-white flex justify-between items-baseline">
+          <h2 className="text-2xl font-bold opacity-75">{course.courseName}</h2>
+          <div className="flex flex-row gap-x-4">
+            { role === "INSTRUCTOR" && 
+              <div className="mr-[5%] bg-white rounded-xl p-2 cursor-pointer"><IoIosAddCircle size={20} className="text-black" onClick={() => setMeetingLinkModal(true)} /></div>
+            }
+            <div className="bg-white rounded-xl p-2 cursor-pointer"><FaVideo size={20} className="text-black" onClick={() => course?.meetingLink && course?.meetingLink.length > 0 ? window.open(course?.meetingLink, "_blank") : toast.error(role === "INSTRUCTOR" ? "Please Add A Meeting Link" : "Please Ask Your Instructor To Add A Meeting Link")} /></div>
+          </div>
         </div>
       </div>
 
@@ -606,18 +637,17 @@ const Course = () => {
       <div className="container mx-auto mt-8">
         <div className="flex space-x-4">
           <button
-            className={`px-4 py-2 font-medium ${
-              activeTab === "assignments"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            }`}
+            className={`px-4 py-2 font-medium ${activeTab === "assignments"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-gray-700"
+              }`}
             onClick={() => setActiveTab("assignments")}
           >
             ASSIGNMENT
           </button>
           {/* + Button to add assignment */}
           {
-            role === "INSTRUCTOR" && 
+            role === "INSTRUCTOR" &&
             <button
               className="px-4 py-2 font-medium bg-green-500 text-white hover:bg-green-600"
               onClick={handleOpenAddAssignmentModal}
@@ -626,18 +656,17 @@ const Course = () => {
             </button>
           }
           <button
-            className={`px-4 py-2 font-medium ${
-              activeTab === "announcements"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            }`}
+            className={`px-4 py-2 font-medium ${activeTab === "announcements"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-gray-700"
+              }`}
             onClick={() => setActiveTab("announcements")}
           >
             ANNOUNCEMENT
           </button>
           {/* + Button to add announcement */}
           {
-            role === "INSTRUCTOR" && 
+            role === "INSTRUCTOR" &&
             <button
               className="px-4 py-2 font-medium bg-green-500 text-white hover:bg-green-600"
               onClick={handleOpenAddAnnouncementModal}
@@ -646,31 +675,28 @@ const Course = () => {
             </button>
           }
           <button
-            className={`px-4 py-2 font-medium ${
-              activeTab === "discussion"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            }`}
+            className={`px-4 py-2 font-medium ${activeTab === "discussion"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-gray-700"
+              }`}
             onClick={() => setActiveTab("discussion")}
           >
             DISCUSSION
           </button>
           <button
-            className={`px-4 py-2 font-medium ${
-              activeTab === "doubt"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            }`}
+            className={`px-4 py-2 font-medium ${activeTab === "doubt"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-gray-700"
+              }`}
             onClick={() => setActiveTab("doubt")}
           >
             DOUBT
           </button>
           <button
-            className={`px-4 py-2 font-medium ${
-              activeTab === "students"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-gray-700"
-            }`}
+            className={`px-4 py-2 font-medium ${activeTab === "students"
+              ? "bg-blue-500 text-white"
+              : "bg-gray-300 text-gray-700"
+              }`}
             onClick={() => setActiveTab("students")}
           >
             STUDENT
@@ -691,20 +717,20 @@ const Course = () => {
                       {assignment.assignmentName}
                     </h3>
                     <div className="flex items-center">
-                    {/* Edit Button */}
-                    {
-                      role === "INSTRUCTOR" && 
-                      <button
-                        className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={() => setEditAssignment(assignment)}
-                      >
-                        Edit
-                      </button>
-                    }
-                    {/* Expand/Collapse Button */}
-                    <span onClick={() => toggleDetails(assignment.id)}>
-                      {expandedAssignmentId === assignment.id ? "▲" : "▼"}
-                    </span>
+                      {/* Edit Button */}
+                      {
+                        role === "INSTRUCTOR" &&
+                        <button
+                          className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          onClick={() => setEditAssignment(assignment)}
+                        >
+                          Edit
+                        </button>
+                      }
+                      {/* Expand/Collapse Button */}
+                      <span onClick={() => toggleDetails(assignment.id)}>
+                        {expandedAssignmentId === assignment.id ? "▲" : "▼"}
+                      </span>
                     </div>
                   </div>
                   {expandedAssignmentId === assignment.id && (
@@ -736,7 +762,7 @@ const Course = () => {
                                   {file.fileName}
                                 </a>
                                 {
-                                  role === "INSTRUCTOR" && 
+                                  role === "INSTRUCTOR" &&
                                   <button
                                     className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                                     onClick={() => handleDeleteFile(file.id)}
@@ -758,29 +784,29 @@ const Course = () => {
                       </button>
                       {
                         role === "STUDENT" && (
-                        <button
-                          className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
-                          onClick = {() => handleAddSubmissionModal(assignment)}
-                        >
-                          ADD SUBMISSION
-                        </button>
-                      )}
+                          <button
+                            className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
+                            onClick={() => handleAddSubmissionModal(assignment)}
+                          >
+                            ADD SUBMISSION
+                          </button>
+                        )}
                       {
                         role === "INSTRUCTOR" && (
-                        <button
-                          className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
-                          onClick = {() => {
-                            setAddFileAssignmentModal(true)
-                            setAddFileAssignment(assignment.id);
-                          }}
-                        >
-                          ADD FILE
-                        </button>
-                      )}
+                          <button
+                            className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
+                            onClick={() => {
+                              setAddFileAssignmentModal(true)
+                              setAddFileAssignment(assignment.id);
+                            }}
+                          >
+                            ADD FILE
+                          </button>
+                        )}
                       <button
                         className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
                       >
-                        
+
                         <div className="flex" onClick={() => role === "STUDENT" ? handleChat(assignment) : setChatAssignment(assignment.id)}>
                           CHAT <AiOutlineMessage className="ml-2" size={24} />
                         </div>
@@ -792,13 +818,13 @@ const Course = () => {
             </div>
           )}
 
-          {activeTab === "doubt" && doubts.map((doubt,index) => (
+          {activeTab === "doubt" && doubts.map((doubt, index) => (
             <div key={doubt.id} className="mb-4">
               <div className="flex items-center justify-between">
-              <div className="flex items-start">
-                <h3 className="text-xl font-bold mr-2">{index + 1}. </h3>
-                <p className="text-xl font-bold">{doubt.content}</p>
-              </div>
+                <div className="flex items-start">
+                  <h3 className="text-xl font-bold mr-2">{index + 1}. </h3>
+                  <p className="text-xl font-bold">{doubt.content}</p>
+                </div>
                 <div className="flex gap-2 items-center">
                   <button
                     className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
@@ -810,11 +836,11 @@ const Course = () => {
                     {doubt.user.firstName} {doubt.user.lastName}
                   </p>
                 </div>
-                
+
               </div>
 
               {/* Display "View Answers" button */}
-             
+
 
               {/* Display answers if available and visibility is toggled */}
               {answersVisible.includes(doubt.id) && doubt.answers && doubt.answers.length > 0 && (
@@ -824,7 +850,7 @@ const Course = () => {
                       <div className="flex items-start">
                         {/* Display index to the side of the answer */}
                         <p className="mr-2 text-gray-700 font-semibold">{index + 1}.</p>
-                        
+
                         {/* Display answer content */}
                         <div>
                           <p>{answer.content}</p>
@@ -839,7 +865,7 @@ const Course = () => {
                 </div>
               )}
 
-              {/* Add your logic for handling answers or adding answers based on the user's role */}    
+              {/* Add your logic for handling answers or adding answers based on the user's role */}
               <div className="mt-2 flex items-center">
                 <textarea
                   className="w-full h-20 border rounded p-2 ml-5"
@@ -853,7 +879,7 @@ const Course = () => {
                 />
                 <button
                   className="ml-2 px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                  onClick={() => handleAddDoubtAnswer(doubt.id,index)}
+                  onClick={() => handleAddDoubtAnswer(doubt.id, index)}
                 >
                   ADD
                 </button>
@@ -865,7 +891,7 @@ const Course = () => {
                 </button>
               </div>
 
-              
+
             </div>
           ))}
 
@@ -909,45 +935,45 @@ const Course = () => {
             </div>
           )}
 
-        {
-          activeTab === "discussion" && (
-            <>
-              {discussionMessages.map((message, index) => (
-                <div key={index} className="flex mb-2">
-                  <div className="flex items-center">
-                    <img
-                      src={generateAvatarUrl(`${message.sender.firstName}+${message.sender.lastName}`)}
-                      alt="Avatar"
-                      className="w-8 h-8 rounded-full"
-                    />
+          {
+            activeTab === "discussion" && (
+              <>
+                {discussionMessages.map((message, index) => (
+                  <div key={index} className="flex mb-2">
+                    <div className="flex items-center">
+                      <img
+                        src={generateAvatarUrl(`${message.sender.firstName}+${message.sender.lastName}`)}
+                        alt="Avatar"
+                        className="w-8 h-8 rounded-full"
+                      />
+                    </div>
+                    <div className="flex flex-col ml-2">
+                      <span className="text-sm font-semibold">
+                        {`${message.sender.firstName} ${message.sender.lastName}`}
+                        {/* Add role indication if needed */}
+                      </span>
+                      <span>{message.content}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-col ml-2">
-                    <span className="text-sm font-semibold">
-                      {`${message.sender.firstName} ${message.sender.lastName}`}
-                      {/* Add role indication if needed */}
-                    </span>
-                    <span>{message.content}</span>
-                  </div>
+                ))}
+                <div className="flex items-center mt-4">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    className="flex-grow border rounded-l p-2 w-full"
+                    placeholder="Type A Message..."
+                  />
+                  <button
+                    className="px-4 py-2 bg-blue-500 text-white rounded-r hover:bg-blue-600 ml-2"
+                    onClick={() => handleSendMessage('discussion')}
+                  >
+                    SEND
+                  </button>
                 </div>
-              ))}
-              <div className="flex items-center mt-4">
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  className="flex-grow border rounded-l p-2 w-full"
-                  placeholder="Type A Message..."
-                />
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded-r hover:bg-blue-600 ml-2"
-                  onClick={() => handleSendMessage('discussion')}
-                >
-                  SEND
-                </button>
-              </div>
-            </>
-          )
-        }
+              </>
+            )
+          }
 
           {/* Display enrolled users directly in the tab content */}
           {activeTab === "students" && (
@@ -1028,7 +1054,7 @@ const Course = () => {
                               ))}
                             </ul>
                           </td>
-                          
+
                           <td className="p-4 relative">
                             {submission.comment === null ? (
                               <span className="text-gray-500">N/A</span>
@@ -1039,21 +1065,21 @@ const Course = () => {
                             )}
                           </td>
                           {
-                            role === "INSTRUCTOR" && 
+                            role === "INSTRUCTOR" &&
                             <td>
-                            <button
-                              className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                              onClick={() => {
+                              <button
+                                className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                onClick={() => {
                                   setEditCommentSubmissionId(submission)
                                   setEditCommentData({
                                     comment: submission.comment
                                   })
                                 }
-                              }
-                            >
-                              Edit
-                            </button>
-                          </td>
+                                }
+                              >
+                                Edit
+                              </button>
+                            </td>
                           }
                           <td className="p-4 relative">
                             {submission.marks === null ? (
@@ -1070,8 +1096,8 @@ const Course = () => {
                             )}
                           </td>
                           <td>
-                          {
-                              role === "INSTRUCTOR" && 
+                            {
+                              role === "INSTRUCTOR" &&
                               <button
                                 className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                                 onClick={() => handleEditMarks(submission.id)}
@@ -1080,7 +1106,7 @@ const Course = () => {
                               </button>
                             }
                             {
-                              role === "STUDENT" && 
+                              role === "STUDENT" &&
                               <button
                                 className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                                 onClick={() => handleRemoveSubmission(selectedAssignmentId)}
@@ -1137,35 +1163,35 @@ const Course = () => {
       {
         editCommentSubmissionId && (
           <div className="fixed inset-0 flex items-center justify-center">
-          <div className="bg-black opacity-75 fixed inset-0"></div>
-          <div className="bg-white p-8 z-10">
-            <h2 className="text-2xl font-bold mb-4">EDIT COMMENT</h2>
-            <label className="block mb-2">
-              Comment
-              <input
-                type="text"
-                value={editCommentData.comment}
-                onChange={(e) => setEditCommentData({
-                  ...editCommentData,
-                  comment: e.target.value
-                })}
-                className="border rounded w-full p-2"
-              />
-            </label>
-            <button
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={handleEditComment}
-            >
-              Save
-            </button>
-            <button
-              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-              onClick={() => setEditCommentSubmissionId(null)}
-            >
-              Cancel
-            </button>
+            <div className="bg-black opacity-75 fixed inset-0"></div>
+            <div className="bg-white p-8 z-10">
+              <h2 className="text-2xl font-bold mb-4">EDIT COMMENT</h2>
+              <label className="block mb-2">
+                Comment
+                <input
+                  type="text"
+                  value={editCommentData.comment}
+                  onChange={(e) => setEditCommentData({
+                    ...editCommentData,
+                    comment: e.target.value
+                  })}
+                  className="border rounded w-full p-2"
+                />
+              </label>
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={handleEditComment}
+              >
+                Save
+              </button>
+              <button
+                className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                onClick={() => setEditCommentSubmissionId(null)}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </div>
         )
       }
       {/* Add Assignment Button */}
@@ -1325,194 +1351,194 @@ const Course = () => {
       )}
       {showDeleteFileModal && (
         <div className="fixed inset-0 flex items-center justify-center">
-            <div className="bg-black opacity-75 fixed inset-0"></div>
-            <div className="bg-white p-8 z-10">
-                <h2 className="text-2xl font-bold mb-4">DELETE FILE</h2>
-                <p>Are you sure you want to delete this file?</p>
-                <button
-                    className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                    onClick={handleConfirmDeleteFile}
-                >
-                    Yes
-                </button>
-                <button
-                    className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                    onClick={handleCancelDeleteFile}
-                >
-                    No
-                </button>
-            </div>
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10">
+            <h2 className="text-2xl font-bold mb-4">DELETE FILE</h2>
+            <p>Are you sure you want to delete this file?</p>
+            <button
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              onClick={handleConfirmDeleteFile}
+            >
+              Yes
+            </button>
+            <button
+              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={handleCancelDeleteFile}
+            >
+              No
+            </button>
+          </div>
         </div>
-      )} 
+      )}
       {removeSubmissionModal && (
         <div className="fixed inset-0 flex items-center justify-center">
-            <div className="bg-black opacity-75 fixed inset-0"></div>
-            <div className="bg-white p-8 z-10">
-                <h2 className="text-2xl font-bold mb-4">REMOVE SUBMISSION</h2>
-                <p>Are you sure you want to remove your Submission?</p>
-                <button
-                    className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                    onClick={handleDeleteSubmission}
-                >
-                    Yes
-                </button>
-                <button
-                    className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                    onClick={handleCancelRemoveSubmission}
-                >
-                    No
-                </button>
-            </div>
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10">
+            <h2 className="text-2xl font-bold mb-4">REMOVE SUBMISSION</h2>
+            <p>Are you sure you want to remove your Submission?</p>
+            <button
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              onClick={handleDeleteSubmission}
+            >
+              Yes
+            </button>
+            <button
+              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={handleCancelRemoveSubmission}
+            >
+              No
+            </button>
+          </div>
         </div>
-      )} 
+      )}
       {addSubmissionModal && (
         <div className="fixed inset-0 flex items-center justify-center">
-            <div className="bg-black opacity-75 fixed inset-0"></div>
-            <div className="bg-white p-8 z-10">
-                <h2 className="text-2xl font-bold mb-4">ADD SUBMISSION</h2>
-                <label className="block mb-2">
-                  UPLOAD FILE
-                  <input
-                    type="file"
-                    multiple
-                    onChange={(e) =>
-                      setNewSubmissionData({
-                        ...newSubmissionData,
-                        uploadedFiles: e.target.files,
-                      })
-                    }
-                    className="border rounded w-full p-2"
-                  />
-                </label>
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={handleAddSubmission}
-                >
-                  ADD SUBMISSION
-                </button>
-                <button
-                  className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                  onClick={() => setAddSubmissionModal(false)}
-                >
-                  CANCEL
-                </button>
-            </div>
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10">
+            <h2 className="text-2xl font-bold mb-4">ADD SUBMISSION</h2>
+            <label className="block mb-2">
+              UPLOAD FILE
+              <input
+                type="file"
+                multiple
+                onChange={(e) =>
+                  setNewSubmissionData({
+                    ...newSubmissionData,
+                    uploadedFiles: e.target.files,
+                  })
+                }
+                className="border rounded w-full p-2"
+              />
+            </label>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={handleAddSubmission}
+            >
+              ADD SUBMISSION
+            </button>
+            <button
+              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={() => setAddSubmissionModal(false)}
+            >
+              CANCEL
+            </button>
+          </div>
         </div>
-      )} 
+      )}
       {addFileAssignmentModal && (
         <div className="fixed inset-0 flex items-center justify-center">
-            <div className="bg-black opacity-75 fixed inset-0"></div>
-            <div className="bg-white p-8 z-10">
-                <h2 className="text-2xl font-bold mb-4">ADD FILE</h2>
-                <label className="block mb-2">
-                  UPLOAD FILE
-                  <input
-                    type="file"
-                    multiple
-                    onChange={(e) =>
-                      setNewFileAssignmentData({
-                        ...newFileAssignmentData,
-                        uploadedFiles: e.target.files,
-                      })
-                    }
-                    className="border rounded w-full p-2"
-                  />
-                </label>
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={handleAddFileAssignment}
-                >
-                  ADD FILE
-                </button>
-                <button
-                  className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                  onClick={() => setAddFileAssignmentModal(false)}
-                >
-                  CANCEL
-                </button>
-            </div>
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10">
+            <h2 className="text-2xl font-bold mb-4">ADD FILE</h2>
+            <label className="block mb-2">
+              UPLOAD FILE
+              <input
+                type="file"
+                multiple
+                onChange={(e) =>
+                  setNewFileAssignmentData({
+                    ...newFileAssignmentData,
+                    uploadedFiles: e.target.files,
+                  })
+                }
+                className="border rounded w-full p-2"
+              />
+            </label>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={handleAddFileAssignment}
+            >
+              ADD FILE
+            </button>
+            <button
+              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={() => setAddFileAssignmentModal(false)}
+            >
+              CANCEL
+            </button>
+          </div>
         </div>
-      )} 
+      )}
       {editAssignment && (
         <div className="fixed inset-0 flex items-center justify-center">
-            <div className="bg-black opacity-75 fixed inset-0"></div>
-            <div className="bg-white p-8 z-10">
-                <h2 className="text-2xl font-bold mb-4">EDIT ASSIGNMENT</h2>
-                <label className="block mb-2">
-                  Name
-                  <input
-                    type="text"
-                    value={editAssignmentData.assignmentName}
-                    onChange={(e) =>
-                      setEditAssignmentData({
-                        ...editAssignmentData,
-                        assignmentName: e.target.value,
-                      })
-                    }
-                    className="border rounded w-full p-2"
-                  />
-                </label>
-                <label className="block mb-2">
-                  Description
-                  <input
-                    type="text"
-                    value={editAssignmentData.description}
-                    onChange={(e) =>
-                      setEditAssignmentData({
-                        ...editAssignmentData,
-                        description: e.target.value,
-                      })
-                    }
-                    className="border rounded w-full p-2"
-                  />
-                </label>
-                <label className="block mb-2">
-                  Deadline
-                  <input
-                    type="datetime-local"
-                    value={editAssignmentData.deadline}
-                    onChange={(e) =>
-                      setEditAssignmentData({
-                        ...editAssignmentData,
-                        deadline: e.target.value,
-                      })
-                    }
-                    className="border rounded w-full p-2"
-                  />
-                </label>
-                <label className="block mb-2">
-                  Marks
-                  <input
-                    type="number"
-                    value={editAssignmentData.fullMarks}
-                    onChange={(e) =>
-                      setEditAssignmentData({
-                        ...editAssignmentData,
-                        marks: e.target.value,
-                      })
-                    }
-                    className="border rounded w-full p-2"
-                  />
-                </label>
-                <button
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={handleEditAssignment}
-                >
-                  EDIT
-                </button>
-                <button
-                  className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                  onClick={() => {
-                    setEditAssignment(false)
-                  }}
-                >
-                  CANCEL
-                </button>
-            </div>
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10">
+            <h2 className="text-2xl font-bold mb-4">EDIT ASSIGNMENT</h2>
+            <label className="block mb-2">
+              Name
+              <input
+                type="text"
+                value={editAssignmentData.assignmentName}
+                onChange={(e) =>
+                  setEditAssignmentData({
+                    ...editAssignmentData,
+                    assignmentName: e.target.value,
+                  })
+                }
+                className="border rounded w-full p-2"
+              />
+            </label>
+            <label className="block mb-2">
+              Description
+              <input
+                type="text"
+                value={editAssignmentData.description}
+                onChange={(e) =>
+                  setEditAssignmentData({
+                    ...editAssignmentData,
+                    description: e.target.value,
+                  })
+                }
+                className="border rounded w-full p-2"
+              />
+            </label>
+            <label className="block mb-2">
+              Deadline
+              <input
+                type="datetime-local"
+                value={editAssignmentData.deadline}
+                onChange={(e) =>
+                  setEditAssignmentData({
+                    ...editAssignmentData,
+                    deadline: e.target.value,
+                  })
+                }
+                className="border rounded w-full p-2"
+              />
+            </label>
+            <label className="block mb-2">
+              Marks
+              <input
+                type="number"
+                value={editAssignmentData.fullMarks}
+                onChange={(e) =>
+                  setEditAssignmentData({
+                    ...editAssignmentData,
+                    marks: e.target.value,
+                  })
+                }
+                className="border rounded w-full p-2"
+              />
+            </label>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={handleEditAssignment}
+            >
+              EDIT
+            </button>
+            <button
+              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={() => {
+                setEditAssignment(false)
+              }}
+            >
+              CANCEL
+            </button>
+          </div>
         </div>
       )}
       {
-        privateChat && 
+        privateChat &&
         <div className="fixed inset-0 flex items-center justify-center">
           <div className="bg-black opacity-75 fixed inset-0"></div>
           <div className="bg-white p-8 z-10 w-150">
@@ -1521,39 +1547,38 @@ const Course = () => {
             </div>
             <div className="flex flex-col">
               {privateChat?.messageList.map((message, index) => (
-                <div key={index} className="flex mb-2">
-                  <div className="flex items-center">
+                <div key={index} className="flex flex-col mb-2">
+                  <div className="flex items-center gap-x-2">
                     <img
                       src={generateAvatarUrl(`${message.sender.firstName}+${message.sender.lastName}`)}
                       alt="Avatar"
-                      className="w-8 h-8 rounded-full"
+                      className={`w-8 h-8 rounded-full`}
                     />
-                  </div>
-                  <div className="flex flex-col ml-2">
-                    <span className="text-sm font-semibold">
+                    <div className="text-sm font-semibold">
                       {`${message.sender.firstName} ${message.sender.lastName}`}
                       {message.sender.role === role && (
                         <span className="text-xs font-light text-gray-500 ml-1">(You)</span>
                       )}
-                    </span>
-                    <div className="">
-                      {message.type === 'PICTURE' ? (
-                        <img src={message.content} alt="Message" className="max-w-full h-auto" />
-                      ) : (
-                        <span>{message.content}</span>
-                      )}
                     </div>
+                  </div>
+
+                  <div className="">
+                    {message.type === 'PICTURE' ? (
+                      <img src={message.content} alt="Message" style={{ height: '200px', width: '200px' }} />
+                    ) : (
+                      <span>{message.content}</span>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
             <div className="flex items-center mt-4">
-            <button
-              className="flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 w-10 h-10 focus:outline-none mr-2"
-              onClick={() => widgetRef.current.open()}
-            >
-              <FaCloudUploadAlt /> {/* Replace with your chosen icon */}
-            </button>
+              <button
+                className="flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 w-10 h-10 focus:outline-none mr-2"
+                onClick={() => widgetRef.current.open()}
+              >
+                <FaCloudUploadAlt /> {/* Replace with your chosen icon */}
+              </button>
               <input
                 type="text"
                 value={newMessage}
@@ -1566,7 +1591,7 @@ const Course = () => {
                 onClick={handleSendMessage}
               >
                 SEND
-              </button> 
+              </button>
             </div>
             <div className="flex items-center justify-center mt-4">
               <button
@@ -1614,9 +1639,8 @@ const Course = () => {
               </div>
               <div className="flex justify-between mt-4">
                 <button
-                  className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${
-                    currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className={`bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   onClick={handlePrevPage}
                   disabled={currentPage === 1}
                 >
@@ -1645,10 +1669,41 @@ const Course = () => {
                 </button>
               </div>
             </div>
-        </div>
+          </div>
         )
       }
-
+      {meetingLinkModal && (
+        <div className="fixed inset-0 flex items-center justify-center">
+          <div className="bg-black opacity-75 fixed inset-0"></div>
+          <div className="bg-white p-8 z-10">
+            <h2 className="text-2xl font-bold mb-4">ADD MEETING LINK</h2>
+            <label className="block mb-2">
+              <input
+                type="text"
+                value={meetingLink || ''}
+                onChange={(e) =>
+                  setMeetingLink(e.target.value)
+                }
+                className="border rounded w-full p-2"
+              />
+            </label>
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={handleAddMeetingLink}
+            >
+              EDIT
+            </button>
+            <button
+              className="ml-2 px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={() => {
+                setMeetingLinkModal(false)
+              }}
+            >
+              CANCEL
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
