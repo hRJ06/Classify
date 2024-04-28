@@ -87,7 +87,7 @@ const Course = () => {
         Authorization: 'Bearer ' + token
       }
     })
-    if(response) {
+    if (response) {
       toast.success('Successfully Added Meeting Link')
       const reload = setTimeout(() => {
         window.location.reload();
@@ -623,9 +623,9 @@ const Course = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black"></div>
         <div className="absolute inset-x-0 bottom-0 p-4 text-white flex justify-between items-baseline">
-          <h2 className="text-2xl font-bold opacity-75">{course.courseName}</h2>
+          <h2 className="text-2xl font-bold opacity-75 uppercase tracking-wider">{course.courseName}</h2>
           <div className="flex flex-row gap-x-4">
-            { role === "INSTRUCTOR" && 
+            {role === "INSTRUCTOR" &&
               <div className="mr-[5%] bg-white rounded-xl p-2 cursor-pointer"><IoIosAddCircle size={20} className="text-black" onClick={() => setMeetingLinkModal(true)} /></div>
             }
             <div className="bg-white rounded-xl p-2 cursor-pointer"><FaVideo size={20} className="text-black" onClick={() => course?.meetingLink && course?.meetingLink.length > 0 ? window.open(course?.meetingLink, "_blank") : toast.error(role === "INSTRUCTOR" ? "Please Add A Meeting Link" : "Please Ask Your Instructor To Add A Meeting Link")} /></div>
@@ -634,10 +634,10 @@ const Course = () => {
       </div>
 
       {/* Tabs */}
-      <div className="container mx-auto mt-8">
-        <div className="flex space-x-4">
+      <div className="container mx-auto mt-8 p-4">
+        <div className="flex lg:flex-row flex-col gap-y-2 lg:space-x-4 space-x-0">
           <button
-            className={`px-4 py-2 font-medium ${activeTab === "assignments"
+            className={`px-4 py-2 font-medium tracking-wider text-xl ${activeTab === "assignments"
               ? "bg-blue-500 text-white"
               : "bg-gray-300 text-gray-700"
               }`}
@@ -656,7 +656,7 @@ const Course = () => {
             </button>
           }
           <button
-            className={`px-4 py-2 font-medium ${activeTab === "announcements"
+            className={`px-4 py-2 font-medium tracking-wider ${activeTab === "announcements"
               ? "bg-blue-500 text-white"
               : "bg-gray-300 text-gray-700"
               }`}
@@ -675,7 +675,7 @@ const Course = () => {
             </button>
           }
           <button
-            className={`px-4 py-2 font-medium ${activeTab === "discussion"
+            className={`px-4 py-2 font-medium tracking-wider ${activeTab === "discussion"
               ? "bg-blue-500 text-white"
               : "bg-gray-300 text-gray-700"
               }`}
@@ -684,7 +684,7 @@ const Course = () => {
             DISCUSSION
           </button>
           <button
-            className={`px-4 py-2 font-medium ${activeTab === "doubt"
+            className={`px-4 py-2 font-medium tracking-wider ${activeTab === "doubt"
               ? "bg-blue-500 text-white"
               : "bg-gray-300 text-gray-700"
               }`}
@@ -693,7 +693,7 @@ const Course = () => {
             DOUBT
           </button>
           <button
-            className={`px-4 py-2 font-medium ${activeTab === "students"
+            className={`px-4 py-2 font-medium tracking-wider ${activeTab === "students"
               ? "bg-blue-500 text-white"
               : "bg-gray-300 text-gray-700"
               }`}
@@ -713,7 +713,7 @@ const Course = () => {
                   <div
                     className="flex justify-between items-center cursor-pointer"
                   >
-                    <h3 className="text-xl font-bold">
+                    <h3 className="lg:text-xl text-md font-bold uppercase tracking-wider">
                       {assignment.assignmentName}
                     </h3>
                     <div className="flex items-center">
@@ -721,7 +721,7 @@ const Course = () => {
                       {
                         role === "INSTRUCTOR" &&
                         <button
-                          className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 uppercase tracking-wider text-sm"
                           onClick={() => setEditAssignment(assignment)}
                         >
                           Edit
@@ -735,36 +735,46 @@ const Course = () => {
                   </div>
                   {expandedAssignmentId === assignment.id && (
                     <div className="mt-2">
-                      <p className="text-gray-700 mb-2 font-semibold">
-                        Description: {assignment.description}
-                      </p>
-                      <p className="text-gray-700 mb-2 font-semibold">
-                        Deadline:{" "}
-                        {new Date(assignment.deadline).toLocaleString()}
-                      </p>
-                      <p className="text-gray-700 mb-2 font-semibold">
-                        Marks: {assignment.fullMarks}
-                      </p>
+                      <div className="text-gray-700 mb-2 font-semibold">
+                        <div className="uppercase tracking-wider text-sm underline">
+                          Description
+                        </div>
+                        <div className="tracking-wider">{assignment.description}</div>
+                      </div>
+                      <div className="text-gray-700 mb-2 font-semibold">
+                        <div className="uppercase tracking-wider text-sm underline">
+                          Deadline
+                        </div>
+                        <div className="tracking-wider">{new Date(assignment.deadline).toLocaleString()}</div>
+
+                      </div>
+                      <div className="text-gray-700 mb-2 font-semibold">
+                        <div className="uppercase tracking-wider text-sm underline">
+                          Marks
+                        </div>
+                        <div className="tracking-wider">{assignment.fullMarks}</div>
+
+                      </div>
                       {assignment.file && assignment.file.length > 0 && (
                         <div className="mt-2">
-                          <p className="text-gray-700 mb-1 font-semibold">
-                            Files:
+                          <p className="text-gray-700 mb-1 font-semibold underline uppercase tracking-wider text-sm">
+                            Files
                           </p>
                           <ul className="list-disc ml-4">
-                            {assignment.file.map((file) => (
-                              <li key={file.id} className="mb-2">
+                            {assignment.file.map((file, index) => (
+                              <li key={file.id} className="mb-2 flex items-baseline">
                                 <a
                                   href={file.filePath}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-blue-500 hover:underline"
+                                  className="text-blue-500 hover:underline uppercase text-sm tracking-wider"
                                 >
-                                  {file.fileName}
+                                  <span className="lg:inline hidden text-gray-700">{index + 1}.</span> {file.fileName}
                                 </a>
                                 {
                                   role === "INSTRUCTOR" &&
                                   <button
-                                    className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                    className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 uppercase tracking-wider text-sm"
                                     onClick={() => handleDeleteFile(file.id)}
                                   >
                                     Delete
@@ -776,41 +786,43 @@ const Course = () => {
                         </div>
                       )}
                       {/* Submission Button */}
-                      <button
-                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        onClick={() => handleViewSubmissions(assignment.id)}
-                      >
-                        VIEW SUBMISSION
-                      </button>
-                      {
-                        role === "STUDENT" && (
-                          <button
-                            className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
-                            onClick={() => handleAddSubmissionModal(assignment)}
-                          >
-                            ADD SUBMISSION
-                          </button>
-                        )}
-                      {
-                        role === "INSTRUCTOR" && (
-                          <button
-                            className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
-                            onClick={() => {
-                              setAddFileAssignmentModal(true)
-                              setAddFileAssignment(assignment.id);
-                            }}
-                          >
-                            ADD FILE
-                          </button>
-                        )}
-                      <button
-                        className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 ml-2"
-                      >
+                      <div className="flex lg:flex-row flex-col gap-y-2 lg:items-baseline">
+                        <button
+                          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 tracking-wider"
+                          onClick={() => handleViewSubmissions(assignment.id)}
+                        >
+                          VIEW SUBMISSION
+                        </button>
+                        {
+                          role === "STUDENT" && (
+                            <button
+                              className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 lg:ml-2 ml-0 tracking-wider"
+                              onClick={() => handleAddSubmissionModal(assignment)}
+                            >
+                              ADD SUBMISSION
+                            </button>
+                          )}
+                        {
+                          role === "INSTRUCTOR" && (
+                            <button
+                              className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 lg:ml-2 ml-0 tracking-wider"
+                              onClick={() => {
+                                setAddFileAssignmentModal(true)
+                                setAddFileAssignment(assignment.id);
+                              }}
+                            >
+                              ADD FILE
+                            </button>
+                          )}
+                        <button
+                          className="flex-shrink-0 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 lg:ml-2 ml-0 "
+                        >
 
-                        <div className="flex" onClick={() => role === "STUDENT" ? handleChat(assignment) : setChatAssignment(assignment.id)}>
-                          CHAT <AiOutlineMessage className="ml-2" size={24} />
-                        </div>
-                      </button>
+                          <div className="flex text-center tracking-wider justify-center" onClick={() => role === "STUDENT" ? handleChat(assignment) : setChatAssignment(assignment.id)}>
+                            CHAT <AiOutlineMessage className="ml-2" size={24} />
+                          </div>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -900,11 +912,11 @@ const Course = () => {
               {/* Add content for Announcements tab */}
               {announcements.map((announcement) => (
                 <div key={announcement.id} className="mb-4">
-                  <h3 className="text-xl font-bold">{announcement.name}</h3>
+                  <h3 className="text-xl font-bold uppercase tracking-wider">{announcement.name}</h3>
                   <p className="text-gray-700 mb-2">{announcement.content}</p>
                   {announcement.files && announcement.files.length > 0 && (
                     <div className="mt-2">
-                      <p className="text-gray-700 mb-1 font-semibold">Files:</p>
+                      <p className="text-gray-700 mb-1 font-semibold uppercase tracking-wider underline">Files</p>
                       <ul className="list-disc ml-4">
                         {announcement.files.map((file) => (
                           <li key={file.id}>
@@ -912,14 +924,14 @@ const Course = () => {
                               href={file.filePath}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-500 hover:underline"
+                              className="text-blue-500 hover:underline uppercase lg:text-md text-sm tracking-wider"
                             >
                               {file.fileName}
                             </a>
                             {
                               role === "INSTRUCTOR" &&
                               <button
-                                className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 uppercase tracking-wider lg:text-md text-sm"
                                 onClick={() => handleDeleteFile(file.id)}
                               >
                                 Delete
@@ -999,126 +1011,114 @@ const Course = () => {
               <div className="bg-black opacity-75 fixed inset-0"></div>
               <div className="bg-white p-8 z-10">
                 <h2 className="text-2xl font-bold mb-4">SUBMISSION</h2>
-                <table className="w-full">
-                  <thead>
-                    <tr>
-                      <th className="p-4">Name</th>
-                      <th className="p-4">Email</th>
-                      <th className="p-4">Submission Date</th>
-                      <th className="p-4">Late Status</th>
-                      <th className="p-4">Files</th>
-                      <th className="p-4">Comment</th>
-                      {
-                        role === "INSTRUCTOR" &&
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr>
+                        <th className="p-4">Name</th>
+                        <th className="p-4">Email</th>
+                        <th className="p-4">Submission Date</th>
+                        <th className="p-4">Late Status</th>
+                        <th className="p-4">Files</th>
+                        <th className="p-4">Comment</th>
+                        {role === "INSTRUCTOR" && <th className="p-4"></th>}
+                        <th className="p-4">Marks</th>
                         <th className="p-4"></th>
-                      }
-                      <th className="p-4">Marks</th>
-                      <th className="p-4"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {assignments
-                      .find(
-                        (assignment) => assignment.id === selectedAssignmentId
-                      )
-                      ?.submissions.map((submission) => (
-                        <tr key={submission.id}>
-                          <td className="font-semibold p-4">
-                            {submission.user.firstName}{" "}
-                            {submission.user.lastName}
-                          </td>
-                          <td className="font-semibold p-4">
-                            {submission.user.email}
-                          </td>
-                          <td className="p-4">
-                            {new Date(
-                              submission.submissionDateTime
-                            ).toLocaleString()}
-                          </td>
-                          <td className="p-4">
-                            {submission.lateStatus ? "Late" : "On Time"}
-                          </td>
-                          <td className="p-4">
-                            <ul className="list-disc ml-4">
-                              {submission.file.map((file) => (
-                                <li key={file.id}>
-                                  <a
-                                    href={file.filePath}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-500 hover:underline"
-                                  >
-                                    {file.fileName}
-                                  </a>
-                                </li>
-                              ))}
-                            </ul>
-                          </td>
-
-                          <td className="p-4 relative">
-                            {submission.comment === null ? (
-                              <span className="text-gray-500">N/A</span>
-                            ) : (
-                              <>
-                                {submission.comment}
-                              </>
-                            )}
-                          </td>
-                          {
-                            role === "INSTRUCTOR" &&
-                            <td>
-                              <button
-                                className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                onClick={() => {
-                                  setEditCommentSubmissionId(submission)
-                                  setEditCommentData({
-                                    comment: submission.comment
-                                  })
-                                }
-                                }
-                              >
-                                Edit
-                              </button>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {assignments
+                        .find((assignment) => assignment.id === selectedAssignmentId)
+                        ?.submissions.map((submission) => (
+                          <tr key={submission.id}>
+                            <td className="font-semibold p-4">
+                              {submission.user.firstName} {submission.user.lastName}
                             </td>
-                          }
-                          <td className="p-4 relative">
-                            {submission.marks === null ? (
-                              <span className="text-gray-500">N/A</span>
-                            ) : (
-                              <>
-                                {submission.marks} /{" "}
-                                {
-                                  assignments.find(
-                                    (a) => a.id === selectedAssignmentId
-                                  )?.fullMarks
-                                }
-                              </>
+                            <td className="font-semibold p-4">{submission.user.email}</td>
+                            <td className="p-4">
+                              {new Date(submission.submissionDateTime).toLocaleString()}
+                            </td>
+                            <td className="p-4">
+                              {submission.lateStatus ? "Late" : "On Time"}
+                            </td>
+                            <td className="p-4">
+                              <ul className="list-disc ml-4">
+                                {submission.file.map((file) => (
+                                  <li key={file.id}>
+                                    <a
+                                      href={file.filePath}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-500 hover:underline"
+                                    >
+                                      {file.fileName}
+                                    </a>
+                                  </li>
+                                ))}
+                              </ul>
+                            </td>
+
+                            <td className="p-4 relative">
+                              {submission.comment === null ? (
+                                <span className="text-gray-500">N/A</span>
+                              ) : (
+                                <>
+                                  {submission.comment}
+                                </>
+                              )}
+                            </td>
+                            {role === "INSTRUCTOR" && (
+                              <td>
+                                <button
+                                  className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                  onClick={() => {
+                                    setEditCommentSubmissionId(submission);
+                                    setEditCommentData({
+                                      comment: submission.comment,
+                                    });
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                              </td>
                             )}
-                          </td>
-                          <td>
-                            {
-                              role === "INSTRUCTOR" &&
-                              <button
-                                className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                onClick={() => handleEditMarks(submission.id)}
-                              >
-                                Edit
-                              </button>
-                            }
-                            {
-                              role === "STUDENT" &&
-                              <button
-                                className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                                onClick={() => handleRemoveSubmission(selectedAssignmentId)}
-                              >
-                                Delete
-                              </button>
-                            }
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
+                            <td className="p-4 relative">
+                              {submission.marks === null ? (
+                                <span className="text-gray-500">N/A</span>
+                              ) : (
+                                <>
+                                  {submission.marks} /{" "}
+                                  {
+                                    assignments.find(
+                                      (a) => a.id === selectedAssignmentId
+                                    )?.fullMarks
+                                  }
+                                </>
+                              )}
+                            </td>
+                            <td>
+                              {role === "INSTRUCTOR" && (
+                                <button
+                                  className="ml-2 px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                  onClick={() => handleEditMarks(submission.id)}
+                                >
+                                  Edit
+                                </button>
+                              )}
+                              {role === "STUDENT" && (
+                                <button
+                                  className="ml-2 px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                  onClick={() => handleRemoveSubmission(selectedAssignmentId)}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
                 <button
                   className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                   onClick={() => setSelectedAssignmentId(null)}
@@ -1128,8 +1128,11 @@ const Course = () => {
               </div>
             </div>
           )}
+
         </div>
+
       </div>
+
       {/* Marks Edit Modal */}
       {editingSubmissionId && (
         <div className="fixed inset-0 flex items-center justify-center">

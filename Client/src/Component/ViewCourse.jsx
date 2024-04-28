@@ -115,7 +115,7 @@ const ViewCourse = () => {
   };
 
   return (
-    <div className="container mx-auto mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 font-ubuntu relative">
+    <div className="container mx-auto mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 font-ubuntu relative p-2">
       {
         role === "INSTRUCTOR" && 
         <div className="absolute top-0 right-0 m-4">
@@ -129,7 +129,7 @@ const ViewCourse = () => {
       }
       {courses.length === 0 && (
         <div className="text-center text-gray-500">
-          <p className="text-2xl font-bold mb-4">No Courses Available!</p>
+          <p className="text-2xl font-bold mb-4 uppercase">No Courses Available!</p>
           {role === "INSTRUCTOR" && (
             <p className="text-xl font-bold">Create a new course using the button above.</p>
           )}
@@ -148,9 +148,9 @@ const ViewCourse = () => {
             </button>
           </div>
           <div className="px-6 py-4">
-            <div className="font-bold text-xl mb-2">{course.courseName}</div>
+            <div className="font-bold text-xl mb-2 uppercase">{course.courseName}</div>
             <div className="flex justify-center space-x-4">
-              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" onClick={() => navigate(`/course/${course.id}`)}>View</button>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 uppercase tracking-wider" onClick={() => navigate(`/course/${course.id}`)}>View</button>
             </div>
           </div>
         </div>

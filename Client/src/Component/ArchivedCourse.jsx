@@ -129,7 +129,7 @@ const ArchivedCourse = () => {
       }
       {courses.length === 0 && (
         <div className="text-center text-gray-500">
-          <p className="text-2xl font-bold mb-4">No Courses Available!</p>
+          <p className="text-2xl font-bold mb-4 uppercase tracking-wider">No Courses Available!</p>
           {role === "INSTRUCTOR" && (
             <p className="text-xl font-bold">Create a new course using the button above.</p>
           )}
