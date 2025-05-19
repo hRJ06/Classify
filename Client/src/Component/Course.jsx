@@ -1209,7 +1209,7 @@ const Course = () => {
               NAME
               <input
                 type="text"
-                value={editAssignment.assignmentName}
+                value={newAssignmentData.assignmentName}
                 onChange={(e) =>
                   setNewAssignmentData({
                     ...newAssignmentData,
